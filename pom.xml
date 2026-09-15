@@ -25,7 +25,7 @@
 
     <name>nifi-informix-bundle</name>
     <description>IBM Informix Database Dialect Service for Apache NiFi 2.x</description>
-    <url>https://github.com/danmorcov/nifi-informix-bundle</url>
+    <url>https://github.com/danmorcov88/nifi-informix-bundle</url>
 
     <licenses>
         <license>
