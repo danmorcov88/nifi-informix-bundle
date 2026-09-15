@@ -26,7 +26,7 @@ being added in stages — see [CHANGELOG.md](CHANGELOG.md).
 | Capability | Status |
 |---|---|
 | Service loads and enables in NiFi 2.12.0 (verified on `apache/nifi:2.12.0`) | done |
-| `SELECT` with `SKIP` / `FIRST` paging | done |
+| `SELECT` with `SKIP` / `FIRST` paging | done — verified on Informix 15.0.1 |
 | Configurable identifier quoting (`DELIMIDENT`) | done |
 | `UPSERT` / `INSERT_IGNORE` via `MERGE` | planned |
 | `CREATE TABLE` / `ALTER TABLE` with Informix types | planned |
@@ -60,6 +60,11 @@ being added in stages — see [CHANGELOG.md](CHANGELOG.md).
 5. On the processor (`QueryDatabaseTable`, `GenerateTableFetch`, `PutDatabaseRecord`,
    `UpdateDatabaseTable`), set **Database Type** to `Database Dialect Service` and select the
    Informix service in **Database Dialect Service**.
+
+## Compatibility
+
+See [docs/compatibility.md](docs/compatibility.md) for the NiFi × Informix × driver matrix, with
+what was actually tested.
 
 ## Limitations
 
