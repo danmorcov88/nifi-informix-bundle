@@ -51,7 +51,7 @@ import java.util.StringJoiner;
 @CapabilityDescription("""
         Database Dialect Service supporting IBM Informix.
         Supported Statement Types: ALTER, CREATE, SELECT, UPSERT, INSERT_IGNORE.
-        UPSERT and INSERT_IGNORE are rendered as MERGE statements (Informix 11.50 or later).
+        UPSERT and INSERT_IGNORE are rendered as MERGE statements (Informix 11.70 or later).
         Identifiers are not quoted by default because Informix requires DELIMIDENT for delimited identifiers.
         """
 )
@@ -99,10 +99,6 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
     /** Single-row system table available since Informix 11.70, used as the MERGE source */
     private static final String DUAL_TABLE = "sysmaster:sysdual";
 
-    private volatile boolean quoteIdentifiers;
-
-    private volatile int upsertStringLength = InformixDataTypes.DEFAULT_STRING_LENGTH;
-
     private static final Set<StatementType> SUPPORTED_STATEMENT_TYPES = Set.of(
             StatementType.ALTER,
             StatementType.CREATE,
@@ -110,6 +106,10 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
             StatementType.UPSERT,
             StatementType.INSERT_IGNORE
     );
+
+    private volatile boolean quoteIdentifiers;
+
+    private volatile int upsertStringLength = InformixDataTypes.DEFAULT_STRING_LENGTH;
 
     private static ValidationResult validateStringLength(final String subject, final String input, final ValidationContext context) {
         boolean valid;
