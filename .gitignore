@@ -16,8 +16,8 @@ Thumbs.db
 
 # Local tooling
 .claude/
-demo/nifi-data/
-demo/informix-data/
+
+
 
 # Internal working notes
 tasks/

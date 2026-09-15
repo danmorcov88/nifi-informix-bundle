@@ -22,7 +22,8 @@ No new processors. No bundled JDBC driver. Just correct Informix SQL.
 **Early development.** The service loads in NiFi 2.12.0 and generates Informix `SELECT` statements
 (`SKIP`/`FIRST` paging), `CREATE TABLE` / `ALTER TABLE` with Informix column types, and
 `UPSERT` / `INSERT_IGNORE` as `MERGE`. Every statement type is exercised by integration tests
-against real Informix 14.10 and 15.0.1 servers. The Docker demo is next — see [CHANGELOG.md](CHANGELOG.md).
+against real Informix 14.10 and 15.0.1 servers, and the [demo](demo/) shows the whole thing running
+in two minutes. See [CHANGELOG.md](CHANGELOG.md).
 
 | Capability | Status |
 |---|---|
@@ -32,7 +33,18 @@ against real Informix 14.10 and 15.0.1 servers. The Docker demo is next — see 
 | `UPSERT` / `INSERT_IGNORE` via `MERGE` | done — verified on Informix 14.10 and 15.0.1 |
 | `CREATE TABLE` / `ALTER TABLE` with Informix types | done — verified on Informix 14.10 and 15.0.1 |
 | Integration tests on a real Informix (Testcontainers) | done — Informix 14.10 and 15.0.1, nightly in CI |
-| Docker demo | planned |
+| Docker demo | done — `cd demo && ./run.sh` |
+
+## Try it in two minutes
+
+```
+cd demo
+./run.sh
+```
+
+Starts Informix and NiFi in Docker, imports a flow and copies rows from one Informix table to
+another through `QueryDatabaseTableRecord` → `PutDatabaseRecord` (UPSERT as `MERGE`). Details in
+[demo/README.md](demo/README.md).
 
 ## Requirements
 

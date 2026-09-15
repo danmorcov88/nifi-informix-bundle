@@ -24,3 +24,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   in `MERGE` statements. Informix 14.10 accepts only the default; Informix 15 accepts up to 32739.
 - Integration tests with Testcontainers (`mvn verify -Pintegration-tests`) against the IBM Informix
   developer image, run nightly in CI for 14.10.FC9W1DE and 15.0.1.0.3.
+- Docker demo (`demo/run.sh`): Informix + NiFi 2.12.0 with a seeded database and an importable flow
+  definition that copies rows between two Informix tables with `QueryDatabaseTableRecord` and
+  `PutDatabaseRecord` UPSERT.

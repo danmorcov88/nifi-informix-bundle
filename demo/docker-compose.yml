@@ -1,0 +1,52 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# NiFi 2.12.0 + Informix developer edition with the Informix dialect NAR and a seeded demo database.
+# Use ./run.sh (builds the NAR, downloads the JDBC driver, imports and starts the flow).
+
+services:
+  informix:
+    image: icr.io/informix/informix-developer-database:${INFORMIX_VERSION:-15.0.1.0.3}
+    container_name: nifi-informix-demo-db
+    environment:
+      LICENSE: accept
+      RUN_FILE_POST_INIT: seed.sh
+    ports:
+      - "9088:9088"
+    volumes:
+      - ./informix/seed.sh:/opt/ibm/config/seed.sh:ro
+      - ./informix/seed.sql:/opt/ibm/config/seed.sql:ro
+    healthcheck:
+      test: ["CMD", "bash", "-lc", "echo 'SELECT 1 FROM sysmaster:sysdual;' | dbaccess demo - >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  nifi:
+    image: apache/nifi:2.12.0
+    container_name: nifi-informix-demo-nifi
+    environment:
+      SINGLE_USER_CREDENTIALS_USERNAME: admin
+      SINGLE_USER_CREDENTIALS_PASSWORD: adminadminadmin
+      NIFI_WEB_HTTPS_PORT: "8443"
+    ports:
+      - "8443:8443"
+    volumes:
+      - ../nifi-informix-dialect-nar/target/nifi-informix-dialect-nar-${NAR_VERSION:-0.1.0-SNAPSHOT}.nar:/opt/nifi/nifi-current/nar_extensions/nifi-informix-dialect-nar.nar:ro
+      - ./drivers:/opt/nifi/nifi-current/drivers:ro
+    depends_on:
+      informix:
+        condition: service_healthy
