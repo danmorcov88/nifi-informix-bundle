@@ -1,0 +1,78 @@
+# nifi-informix-bundle
+
+IBM Informix support for Apache NiFi 2.x database processors.
+
+Apache NiFi generates SQL through a `DatabaseDialectService`. Dialects exist for Generic, Oracle,
+MSSQL, MySQL, PostgreSQL and Phoenix — but not for IBM Informix. Informix users are forced onto the
+generic dialect, which produces SQL that Informix rejects for paging (`LIMIT ... OFFSET`) and has no
+upsert at all.
+
+This bundle provides `InformixDatabaseDialectService`, a controller service that plugs into the
+standard processors:
+
+- `QueryDatabaseTable` / `QueryDatabaseTableRecord`
+- `GenerateTableFetch`
+- `PutDatabaseRecord`
+- `UpdateDatabaseTable`
+
+No new processors. No bundled JDBC driver. Just correct Informix SQL.
+
+## Status
+
+**Early development.** The service loads in NiFi 2.12.0 and currently renders the same ANSI SQL as
+the built-in generic dialect. Informix-specific syntax is being added in stages — see
+[CHANGELOG.md](CHANGELOG.md).
+
+| Capability | Status |
+|---|---|
+| Service loads and enables in NiFi 2.12.0 (verified on `apache/nifi:2.12.0`) | done |
+| `SELECT` with `SKIP` / `FIRST` paging | planned |
+| Configurable identifier quoting (`DELIMIDENT`) | planned |
+| `UPSERT` / `INSERT_IGNORE` via `MERGE` | planned |
+| `CREATE TABLE` / `ALTER TABLE` with Informix types | planned |
+| Integration tests on a real Informix (Testcontainers) | planned |
+| Docker demo | planned |
+
+## Requirements
+
+- Apache NiFi 2.12.0 (other 2.x lines untested)
+- Java 21
+- IBM Informix 12.10 or 14.10+
+- IBM Informix JDBC driver (`com.ibm.informix:jdbc`), supplied by you — it is not bundled
+
+## Installation
+
+1. Build the NAR:
+   ```
+   mvn clean install
+   ```
+2. Copy `nifi-informix-dialect-nar/target/nifi-informix-dialect-nar-<version>.nar` into NiFi's
+   NAR auto-load directory — NiFi picks it up within seconds, no restart needed:
+   - standard distribution: `<NIFI_HOME>/extensions/`
+   - `apache/nifi` Docker image: `/opt/nifi/nifi-current/nar_extensions/`
+
+   (The directory is `nifi.nar.library.autoload.directory` in `nifi.properties`.)
+3. In NiFi, create a `DBCPConnectionPool` pointing at your Informix instance, with the IBM JDBC
+   driver JAR on its *Database Driver Location(s)*.
+4. Create an `InformixDatabaseDialectService` controller service and enable it.
+5. On the processor (`QueryDatabaseTable`, `GenerateTableFetch`, `PutDatabaseRecord`,
+   `UpdateDatabaseTable`), set **Database Type** to `Database Dialect Service` and select the
+   Informix service in **Database Dialect Service**.
+
+## Limitations
+
+Documented openly in [docs/limitations.md](docs/limitations.md). Read it before relying on this
+bundle in production.
+
+## Building
+
+```
+mvn clean verify
+```
+
+Unit tests run without a database. Integration tests against a real Informix instance are planned
+as a separate, opt-in Maven profile.
+
+## License
+
+Apache License 2.0 — see [LICENSE](LICENSE).
