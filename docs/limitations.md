@@ -4,17 +4,26 @@ This file lists what the bundle does **not** do, and why. It is updated with eve
 
 ## Current state (0.1.0-SNAPSHOT)
 
-The service renders the same ANSI SQL as NiFi's built-in generic dialect. That means, right now:
+`SELECT` statements are Informix-specific (`SELECT SKIP n FIRST m ...`). Everything else still renders
+the same ANSI SQL as NiFi's built-in generic dialect. That means, right now:
 
-- `SELECT` paging uses `LIMIT ... OFFSET`, which **Informix rejects**. `GenerateTableFetch` with a
-  partition size and `QueryDatabaseTable` with a fetch limit will fail until `SKIP`/`FIRST` support
-  lands.
 - `UPSERT` and `INSERT_IGNORE` are not supported; `PutDatabaseRecord` refuses those statement types
   with this dialect selected.
 - `CREATE TABLE` / `ALTER TABLE` emit JDBC type names (`VARCHAR`, `TIMESTAMP`, ...) and the
   non-Informix `ADD COLUMNS (...)` form. `UpdateDatabaseTable` will fail.
 
-In other words: at this stage the bundle proves the NAR loads. Do not use it for real flows yet.
+In other words: read-only flows (`QueryDatabaseTable`, `GenerateTableFetch`) can be tried; writes cannot.
+
+## SELECT / paging
+
+- `SKIP`/`FIRST` is used only when the processor pages by row count (no index column). When
+  `GenerateTableFetch` pages by column value, the dialect emits a range on that column instead
+  (`col >= offset AND col < offset + limit`), like the built-in adapters.
+- `SKIP 0` is omitted; `FIRST` is emitted whenever a limit is present. Informix rejects `FIRST 0`,
+  and so will this dialect's output — NiFi never requests a zero limit.
+- Informix versions before 11.10 do not allow `SKIP`/`FIRST` inside subqueries. The dialect never
+  places them in a subquery; a *Custom Query* supplied by you is wrapped as a derived table and the
+  paging goes on the outer statement.
 
 ## Permanent limitations (by design)
 

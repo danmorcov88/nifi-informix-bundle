@@ -40,8 +40,8 @@ import java.util.StringJoiner;
 /**
  * Database Dialect Service generating SQL statements for IBM Informix.
  * <p>
- * The current implementation renders ANSI SQL identical to the standard NiFi dialect;
- * Informix-specific syntax (SKIP/FIRST paging, MERGE upsert, type mapping) is added incrementally.
+ * SELECT statements use Informix SKIP/FIRST paging. ALTER and CREATE still render ANSI SQL;
+ * Informix type mapping and MERGE upsert are added incrementally.
  */
 @CapabilityDescription("""
         Database Dialect Service supporting IBM Informix.
@@ -107,6 +107,11 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
         return declaration.toString();
     }
 
+    /**
+     * Informix places paging in the projection clause: SELECT [SKIP offset] [FIRST limit] columns FROM ...
+     * When an index column is supplied, paging is expressed as a range on that column in WHERE instead,
+     * matching the behaviour of the built-in database adapters.
+     */
     private String getSelectStatement(final StatementRequest statementRequest) {
         if (!(statementRequest instanceof final QueryStatementRequest queryStatementRequest)) {
             throw new IllegalArgumentException("Query Statement Request not found [%s]".formatted(statementRequest.getClass()));
@@ -115,27 +120,33 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
         final TableDefinition tableDefinition = queryStatementRequest.tableDefinition();
         final String qualifiedTableName = getQualifiedTableName(tableDefinition);
         final Optional<PageRequest> pageRequest = queryStatementRequest.pageRequest();
+        final boolean indexedPaging = pageRequest.flatMap(PageRequest::indexColumnName).isPresent();
 
-        final StringBuilder sql = new StringBuilder();
-        final Optional<String> derivedTable = queryStatementRequest.derivedTable();
-        if (derivedTable.isPresent()) {
-            sql.append("SELECT * FROM (%s) AS %s".formatted(derivedTable.get(), qualifiedTableName));
-        } else {
-            sql.append("SELECT %s FROM %s".formatted(getSelectColumns(tableDefinition.columns()), qualifiedTableName));
+        final StringBuilder sql = new StringBuilder("SELECT");
+        if (!indexedPaging) {
+            pageRequest.ifPresent(page -> appendSkipFirst(page, sql));
         }
 
-        final Optional<String> whereClause = queryStatementRequest.whereClause();
-        if (whereClause.isPresent()) {
-            sql.append(" WHERE ").append(whereClause.get());
-            pageRequest.ifPresent(page -> appendIndexedPageRequest(page, sql));
+        final Optional<String> derivedTable = queryStatementRequest.derivedTable();
+        if (derivedTable.isPresent()) {
+            sql.append(" * FROM (%s) AS %s".formatted(derivedTable.get(), qualifiedTableName));
+        } else {
+            sql.append(" %s FROM %s".formatted(getSelectColumns(tableDefinition.columns()), qualifiedTableName));
+        }
+
+        final StringJoiner conditions = new StringJoiner(" AND ");
+        queryStatementRequest.whereClause().ifPresent(conditions::add);
+        if (indexedPaging) {
+            appendIndexRange(pageRequest.get(), conditions);
+        }
+        if (conditions.length() > 0) {
+            sql.append(" WHERE ").append(conditions);
         }
 
         final Optional<String> orderByClause = queryStatementRequest.orderByClause();
         if (orderByClause.isPresent()) {
             sql.append(" ORDER BY ").append(orderByClause.get());
         }
-
-        pageRequest.ifPresent(page -> appendPageRequest(page, sql));
 
         return sql.toString();
     }
@@ -152,32 +163,29 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
     }
 
     /**
-     * Paging without an index column: LIMIT/OFFSET appended after ORDER BY
+     * SKIP must precede FIRST and both must immediately follow SELECT. SKIP 0 is omitted.
      */
-    private void appendPageRequest(final PageRequest pageRequest, final StringBuilder sql) {
-        if (pageRequest.indexColumnName().isPresent()) {
-            return;
+    private void appendSkipFirst(final PageRequest pageRequest, final StringBuilder sql) {
+        final long offset = pageRequest.offset();
+        if (offset > 0) {
+            sql.append(" SKIP ").append(offset);
         }
         final OptionalLong limit = pageRequest.limit();
         if (limit.isPresent()) {
-            sql.append(" LIMIT ").append(limit.getAsLong());
+            sql.append(" FIRST ").append(limit.getAsLong());
         }
-        sql.append(" OFFSET ").append(pageRequest.offset());
     }
 
     /**
-     * Paging with an index column: offset and limit are range bounds on the column, appended to WHERE
+     * Range paging on an index column: offset is the lower bound (inclusive) and offset + limit the upper bound (exclusive)
      */
-    private void appendIndexedPageRequest(final PageRequest pageRequest, final StringBuilder sql) {
-        final Optional<String> indexColumnName = pageRequest.indexColumnName();
-        if (indexColumnName.isEmpty()) {
-            return;
-        }
-        final String column = indexColumnName.get();
-        sql.append(" AND ").append(column).append(" >= ").append(pageRequest.offset());
+    private void appendIndexRange(final PageRequest pageRequest, final StringJoiner conditions) {
+        final String column = pageRequest.indexColumnName().orElseThrow();
+        final long offset = pageRequest.offset();
+        conditions.add("%s >= %d".formatted(column, offset));
         final OptionalLong limit = pageRequest.limit();
         if (limit.isPresent()) {
-            sql.append(" AND ").append(column).append(" < ").append(limit.getAsLong());
+            conditions.add("%s < %d".formatted(column, offset + limit.getAsLong()));
         }
     }
 

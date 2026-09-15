@@ -19,14 +19,14 @@ No new processors. No bundled JDBC driver. Just correct Informix SQL.
 
 ## Status
 
-**Early development.** The service loads in NiFi 2.12.0 and currently renders the same ANSI SQL as
-the built-in generic dialect. Informix-specific syntax is being added in stages — see
-[CHANGELOG.md](CHANGELOG.md).
+**Early development.** The service loads in NiFi 2.12.0 and generates Informix `SELECT` statements
+(`SKIP`/`FIRST` paging). Write-path statements still render ANSI SQL. Informix-specific syntax is
+being added in stages — see [CHANGELOG.md](CHANGELOG.md).
 
 | Capability | Status |
 |---|---|
 | Service loads and enables in NiFi 2.12.0 (verified on `apache/nifi:2.12.0`) | done |
-| `SELECT` with `SKIP` / `FIRST` paging | planned |
+| `SELECT` with `SKIP` / `FIRST` paging | done |
 | Configurable identifier quoting (`DELIMIDENT`) | planned |
 | `UPSERT` / `INSERT_IGNORE` via `MERGE` | planned |
 | `CREATE TABLE` / `ALTER TABLE` with Informix types | planned |
