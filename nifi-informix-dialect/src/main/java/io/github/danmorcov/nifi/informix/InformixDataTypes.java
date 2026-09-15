@@ -34,8 +34,11 @@ final class InformixDataTypes {
     /** Bounded string for key columns: LVARCHAR exceeds the maximum index key size (error -550) */
     static final String KEY_STRING_TYPE = "VARCHAR(255)";
 
-    /** Cast target for string parameters: CAST(x AS LVARCHAR) without a length silently truncates to 2048 */
-    static final String PARAMETER_STRING_TYPE = "LVARCHAR(32739)";
+    /** Length of LVARCHAR when declared without one; the only string cast length Informix 14.10 accepts in a MERGE source */
+    static final int DEFAULT_STRING_LENGTH = 2048;
+
+    /** Largest LVARCHAR length Informix allows */
+    static final int MAX_STRING_LENGTH = 32739;
 
     /** Simple large object for binary data; unlike BLOB it needs no sbspace */
     static final String BINARY_TYPE = "BYTE";
@@ -57,11 +60,16 @@ final class InformixDataTypes {
 
     /**
      * Type name for casting a statement parameter, e.g. CAST(? AS type), so that Informix can resolve
-     * the parameter type inside a MERGE source query without truncating long strings
+     * the parameter type inside a MERGE source query. String parameters are cast to LVARCHAR of the
+     * given length; Informix silently truncates longer values. The length is left implicit when it
+     * equals the LVARCHAR default because Informix 14.10 rejects an explicit length in that position.
      */
-    static String getParameterTypeName(final int jdbcType) {
+    static String getParameterTypeName(final int jdbcType, final int stringLength) {
         final String typeName = getTypeName(jdbcType);
-        return STRING_TYPE.equals(typeName) ? PARAMETER_STRING_TYPE : typeName;
+        if (!STRING_TYPE.equals(typeName)) {
+            return typeName;
+        }
+        return stringLength == DEFAULT_STRING_LENGTH ? STRING_TYPE : "%s(%d)".formatted(STRING_TYPE, stringLength);
     }
 
     static String getTypeName(final int jdbcType) {

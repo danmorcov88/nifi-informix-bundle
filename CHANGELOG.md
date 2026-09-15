@@ -20,3 +20,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   work, and `VARCHAR(255)` for string key columns to stay within the index key size.
 - `UPSERT` and `INSERT_IGNORE` as `MERGE INTO ... USING (SELECT CAST(? AS ...) ... FROM sysmaster:sysdual)`,
   binding every record value once in column order as `PutDatabaseRecord` expects.
+- *Upsert String Length* property (default 2048): length of the `LVARCHAR` cast for string values
+  in `MERGE` statements. Informix 14.10 accepts only the default; Informix 15 accepts up to 32739.
+- Integration tests with Testcontainers (`mvn verify -Pintegration-tests`) against the IBM Informix
+  developer image, run nightly in CI for 14.10.FC9W1DE and 15.0.1.0.3.

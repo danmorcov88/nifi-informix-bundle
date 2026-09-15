@@ -79,7 +79,7 @@ class InformixDatabaseDialectServiceTest {
     @Test
     void testUpsert() {
         final StatementRequest request = new StandardStatementRequest(StatementType.UPSERT, TABLE);
-        assertEquals("MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR(32739)) AS label FROM sysmaster:sysdual) n"
+        assertEquals("MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR) AS label FROM sysmaster:sysdual) n"
                 + " ON (t.id = n.id)"
                 + " WHEN MATCHED THEN UPDATE SET label = n.label"
                 + " WHEN NOT MATCHED THEN INSERT (id, label) VALUES (n.id, n.label)", sql(request));
@@ -91,7 +91,7 @@ class InformixDatabaseDialectServiceTest {
         final ColumnDefinition amount = new StandardColumnDefinition("amount", Types.DECIMAL, ColumnDefinition.Nullable.YES, false);
         final ColumnDefinition updated = new StandardColumnDefinition("updated", Types.TIMESTAMP, ColumnDefinition.Nullable.YES, false);
         final TableDefinition table = new TableDefinition(Optional.empty(), Optional.empty(), TABLE_NAME, List.of(ID, region, amount, updated));
-        assertEquals("MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR(32739)) AS region,"
+        assertEquals("MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR) AS region,"
                 + " CAST(? AS DECIMAL(32,10)) AS amount, CAST(? AS DATETIME YEAR TO FRACTION(5)) AS updated FROM sysmaster:sysdual) n"
                 + " ON (t.id = n.id AND t.region = n.region)"
                 + " WHEN MATCHED THEN UPDATE SET amount = n.amount, updated = n.updated"
@@ -129,7 +129,7 @@ class InformixDatabaseDialectServiceTest {
     @Test
     void testInsertIgnore() {
         final StatementRequest request = new StandardStatementRequest(StatementType.INSERT_IGNORE, TABLE);
-        assertEquals("MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR(32739)) AS label FROM sysmaster:sysdual) n"
+        assertEquals("MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR) AS label FROM sysmaster:sysdual) n"
                 + " ON (t.id = n.id)"
                 + " WHEN NOT MATCHED THEN INSERT (id, label) VALUES (n.id, n.label)", sql(request));
     }
@@ -140,7 +140,7 @@ class InformixDatabaseDialectServiceTest {
         final ColumnDefinition quotedId = new StandardColumnDefinition("\"Id\"", Types.INTEGER, ColumnDefinition.Nullable.NO, true);
         final ColumnDefinition quotedLabel = new StandardColumnDefinition("\"Label\"", Types.VARCHAR, ColumnDefinition.Nullable.YES, false);
         final TableDefinition table = new TableDefinition(Optional.empty(), Optional.empty(), "\"Orders\"", List.of(quotedId, quotedLabel));
-        assertEquals("MERGE INTO \"Orders\" t USING (SELECT CAST(? AS INTEGER) AS \"Id\", CAST(? AS LVARCHAR(32739)) AS \"Label\" FROM sysmaster:sysdual) n"
+        assertEquals("MERGE INTO \"Orders\" t USING (SELECT CAST(? AS INTEGER) AS \"Id\", CAST(? AS LVARCHAR) AS \"Label\" FROM sysmaster:sysdual) n"
                 + " ON (t.\"Id\" = n.\"Id\")"
                 + " WHEN MATCHED THEN UPDATE SET \"Label\" = n.\"Label\""
                 + " WHEN NOT MATCHED THEN INSERT (\"Id\", \"Label\") VALUES (n.\"Id\", n.\"Label\")", sql(new StandardStatementRequest(StatementType.UPSERT, table)));
@@ -318,6 +318,27 @@ class InformixDatabaseDialectServiceTest {
     void testQuoteIdentifiersAlter() {
         enableQuoting();
         assertEquals("ALTER TABLE \"orders\" ADD (\"id\" INTEGER, \"label\" LVARCHAR)", sql(new StandardStatementRequest(StatementType.ALTER, TABLE)));
+    }
+
+    @Test
+    void testUpsertStringLengthConfigured() {
+        runner.setProperty(service, InformixDatabaseDialectService.UPSERT_STRING_LENGTH, "32739");
+        runner.enableControllerService(service);
+        final String sql = sql(new StandardStatementRequest(StatementType.UPSERT, TABLE));
+        assertEquals("MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR(32739)) AS label FROM sysmaster:sysdual) n"
+                + " ON (t.id = n.id) WHEN MATCHED THEN UPDATE SET label = n.label WHEN NOT MATCHED THEN INSERT (id, label) VALUES (n.id, n.label)", sql);
+    }
+
+    @Test
+    void testUpsertStringLengthValidation() {
+        runner.setProperty(service, InformixDatabaseDialectService.UPSERT_STRING_LENGTH, "0");
+        runner.assertNotValid(service);
+        runner.setProperty(service, InformixDatabaseDialectService.UPSERT_STRING_LENGTH, "32740");
+        runner.assertNotValid(service);
+        runner.setProperty(service, InformixDatabaseDialectService.UPSERT_STRING_LENGTH, "abc");
+        runner.assertNotValid(service);
+        runner.setProperty(service, InformixDatabaseDialectService.UPSERT_STRING_LENGTH, "4000");
+        runner.assertValid(service);
     }
 
     private void enableQuoting() {

@@ -18,6 +18,9 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
 
 jobs:
   build:
@@ -39,3 +42,27 @@ jobs:
         with:
           name: nifi-informix-dialect-nar-nifi-${{ matrix.nifi }}
           path: nifi-informix-dialect-nar/target/*.nar
+
+  integration:
+    # Real Informix via Testcontainers: ~700 MB image per version, so not on every push
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        informix: ["14.10.FC9W1DE", "15.0.1.0.3"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Integration tests on Informix ${{ matrix.informix }}
+        run: mvn -B -ntp verify -Pintegration-tests -Dinformix.image=icr.io/informix/informix-developer-database:${{ matrix.informix }}
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failsafe-reports-informix-${{ matrix.informix }}
+          path: nifi-informix-dialect/target/failsafe-reports

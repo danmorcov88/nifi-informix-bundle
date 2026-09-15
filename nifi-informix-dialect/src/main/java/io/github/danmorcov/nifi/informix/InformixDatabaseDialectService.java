@@ -20,6 +20,8 @@ import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.annotation.lifecycle.OnEnabled;
 import org.apache.nifi.components.PropertyDescriptor;
+import org.apache.nifi.components.ValidationContext;
+import org.apache.nifi.components.ValidationResult;
 import org.apache.nifi.controller.AbstractControllerService;
 import org.apache.nifi.controller.ConfigurationContext;
 import org.apache.nifi.database.dialect.service.api.ColumnDefinition;
@@ -69,7 +71,20 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
             .defaultValue("false")
             .build();
 
-    private static final List<PropertyDescriptor> PROPERTY_DESCRIPTORS = List.of(QUOTE_IDENTIFIERS);
+    static final PropertyDescriptor UPSERT_STRING_LENGTH = new PropertyDescriptor.Builder()
+            .name("Upsert String Length")
+            .description("""
+                    Length of the LVARCHAR cast applied to string values in UPSERT and INSERT_IGNORE (MERGE) statements.
+                    Informix silently truncates values longer than this. The default of 2048 works on every supported
+                    Informix version; Informix 14.10 rejects any other length inside a MERGE statement (error -499),
+                    while Informix 15 accepts values up to 32739.
+                    """)
+            .required(true)
+            .defaultValue(String.valueOf(InformixDataTypes.DEFAULT_STRING_LENGTH))
+            .addValidator(InformixDatabaseDialectService::validateStringLength)
+            .build();
+
+    private static final List<PropertyDescriptor> PROPERTY_DESCRIPTORS = List.of(QUOTE_IDENTIFIERS, UPSERT_STRING_LENGTH);
 
     private static final String COLUMN_SEPARATOR = ", ";
 
@@ -86,6 +101,8 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
 
     private volatile boolean quoteIdentifiers;
 
+    private volatile int upsertStringLength = InformixDataTypes.DEFAULT_STRING_LENGTH;
+
     private static final Set<StatementType> SUPPORTED_STATEMENT_TYPES = Set.of(
             StatementType.ALTER,
             StatementType.CREATE,
@@ -93,6 +110,22 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
             StatementType.UPSERT,
             StatementType.INSERT_IGNORE
     );
+
+    private static ValidationResult validateStringLength(final String subject, final String input, final ValidationContext context) {
+        boolean valid;
+        try {
+            final int length = Integer.parseInt(input);
+            valid = length >= 1 && length <= InformixDataTypes.MAX_STRING_LENGTH;
+        } catch (final NumberFormatException e) {
+            valid = false;
+        }
+        return new ValidationResult.Builder()
+                .subject(subject)
+                .input(input)
+                .valid(valid)
+                .explanation("must be an integer between 1 and %d".formatted(InformixDataTypes.MAX_STRING_LENGTH))
+                .build();
+    }
 
     @Override
     protected List<PropertyDescriptor> getSupportedPropertyDescriptors() {
@@ -102,6 +135,7 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
     @OnEnabled
     public void onEnabled(final ConfigurationContext context) {
         quoteIdentifiers = context.getProperty(QUOTE_IDENTIFIERS).asBoolean();
+        upsertStringLength = context.getProperty(UPSERT_STRING_LENGTH).asInteger();
     }
 
     @Override
@@ -166,7 +200,7 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
     /**
      * Upsert as MERGE with a single-row source built from statement parameters:
      * <pre>
-     * MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR(32739)) AS label FROM sysmaster:sysdual) n
+     * MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR) AS label FROM sysmaster:sysdual) n
      * ON (t.id = n.id) WHEN MATCHED THEN UPDATE SET label = n.label WHEN NOT MATCHED THEN INSERT (id, label) VALUES (n.id, n.label)
      * </pre>
      * Every column appears exactly once as a parameter, in table definition order, which is what
@@ -190,7 +224,7 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
         final StringJoiner updateAssignments = new StringJoiner(COLUMN_SEPARATOR);
         for (final ColumnDefinition column : columns) {
             final String columnName = quote(column.columnName());
-            sourceColumns.add("CAST(? AS %s) AS %s".formatted(InformixDataTypes.getParameterTypeName(column.dataType()), columnName));
+            sourceColumns.add("CAST(? AS %s) AS %s".formatted(InformixDataTypes.getParameterTypeName(column.dataType(), upsertStringLength), columnName));
             insertColumns.add(columnName);
             insertValues.add(SOURCE_ALIAS + QUALIFIER_SEPARATOR + columnName);
             if (!column.primaryKey()) {

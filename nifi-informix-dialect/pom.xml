@@ -45,5 +45,20 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Integration tests only (profile integration-tests); the IBM driver is never packaged in the NAR -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-jdbc</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.ibm.informix</groupId>
+            <artifactId>jdbc</artifactId>
+        </dependency>
     </dependencies>
 </project>
