@@ -27,7 +27,7 @@ being added in stages — see [CHANGELOG.md](CHANGELOG.md).
 |---|---|
 | Service loads and enables in NiFi 2.12.0 (verified on `apache/nifi:2.12.0`) | done |
 | `SELECT` with `SKIP` / `FIRST` paging | done |
-| Configurable identifier quoting (`DELIMIDENT`) | planned |
+| Configurable identifier quoting (`DELIMIDENT`) | done |
 | `UPSERT` / `INSERT_IGNORE` via `MERGE` | planned |
 | `CREATE TABLE` / `ALTER TABLE` with Informix types | planned |
 | Integration tests on a real Informix (Testcontainers) | planned |
@@ -55,6 +55,8 @@ being added in stages — see [CHANGELOG.md](CHANGELOG.md).
 3. In NiFi, create a `DBCPConnectionPool` pointing at your Informix instance, with the IBM JDBC
    driver JAR on its *Database Driver Location(s)*.
 4. Create an `InformixDatabaseDialectService` controller service and enable it.
+   Leave **Quote Identifiers** at `false` unless your connection has `DELIMIDENT=Y`
+   (see [docs/limitations.md](docs/limitations.md)).
 5. On the processor (`QueryDatabaseTable`, `GenerateTableFetch`, `PutDatabaseRecord`,
    `UpdateDatabaseTable`), set **Database Type** to `Database Dialect Service` and select the
    Informix service in **Database Dialect Service**.

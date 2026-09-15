@@ -18,7 +18,10 @@ package io.github.danmorcov.nifi.informix;
 
 import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
+import org.apache.nifi.annotation.lifecycle.OnEnabled;
+import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.controller.AbstractControllerService;
+import org.apache.nifi.controller.ConfigurationContext;
 import org.apache.nifi.database.dialect.service.api.ColumnDefinition;
 import org.apache.nifi.database.dialect.service.api.DatabaseDialectService;
 import org.apache.nifi.database.dialect.service.api.PageRequest;
@@ -30,6 +33,7 @@ import org.apache.nifi.database.dialect.service.api.StatementType;
 import org.apache.nifi.database.dialect.service.api.TableDefinition;
 
 import java.sql.JDBCType;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -45,18 +49,51 @@ import java.util.StringJoiner;
  */
 @CapabilityDescription("""
         Database Dialect Service supporting IBM Informix.
-        Supported Statement Types: ALTER, CREATE, SELECT
+        Supported Statement Types: ALTER, CREATE, SELECT.
+        Identifiers are not quoted by default because Informix requires DELIMIDENT for delimited identifiers.
         """
 )
 @Tags({"Informix", "IBM", "Relational", "Database", "JDBC", "SQL"})
 public class InformixDatabaseDialectService extends AbstractControllerService implements DatabaseDialectService {
+    static final PropertyDescriptor QUOTE_IDENTIFIERS = new PropertyDescriptor.Builder()
+            .name("Quote Identifiers")
+            .description("""
+                    Wrap table and column names in double quotes so that mixed-case or reserved names can be used.
+                    Requires DELIMIDENT=Y on the Informix connection (JDBC URL property or environment variable):
+                    without it Informix treats double-quoted text as a string literal, not as an identifier.
+                    Names that are already quoted are left untouched. Names inside WHERE and ORDER BY clauses
+                    are passed through as written.
+                    """)
+            .required(true)
+            .allowableValues("true", "false")
+            .defaultValue("false")
+            .build();
+
+    private static final List<PropertyDescriptor> PROPERTY_DESCRIPTORS = List.of(QUOTE_IDENTIFIERS);
+
     private static final String COLUMN_SEPARATOR = ", ";
+
+    private static final char QUOTE = '"';
+
+    private static final String QUALIFIER_SEPARATOR = ".";
+
+    private volatile boolean quoteIdentifiers;
 
     private static final Set<StatementType> SUPPORTED_STATEMENT_TYPES = Set.of(
             StatementType.ALTER,
             StatementType.CREATE,
             StatementType.SELECT
     );
+
+    @Override
+    protected List<PropertyDescriptor> getSupportedPropertyDescriptors() {
+        return PROPERTY_DESCRIPTORS;
+    }
+
+    @OnEnabled
+    public void onEnabled(final ConfigurationContext context) {
+        quoteIdentifiers = context.getProperty(QUOTE_IDENTIFIERS).asBoolean();
+    }
 
     @Override
     public StatementResponse getStatement(final StatementRequest statementRequest) {
@@ -95,7 +132,7 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
 
     private String getColumnDeclaration(final ColumnDefinition column, final boolean includePrimaryKey) {
         final StringBuilder declaration = new StringBuilder();
-        declaration.append(column.columnName());
+        declaration.append(quote(column.columnName()));
         declaration.append(' ');
         declaration.append(JDBCType.valueOf(column.dataType()).getName());
         if (ColumnDefinition.Nullable.NO == column.nullable()) {
@@ -157,7 +194,7 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
         }
         final StringJoiner columnNames = new StringJoiner(COLUMN_SEPARATOR);
         for (final ColumnDefinition column : columns) {
-            columnNames.add(column.columnName());
+            columnNames.add(quote(column.columnName()));
         }
         return columnNames.toString();
     }
@@ -180,7 +217,7 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
      * Range paging on an index column: offset is the lower bound (inclusive) and offset + limit the upper bound (exclusive)
      */
     private void appendIndexRange(final PageRequest pageRequest, final StringJoiner conditions) {
-        final String column = pageRequest.indexColumnName().orElseThrow();
+        final String column = quote(pageRequest.indexColumnName().orElseThrow());
         final long offset = pageRequest.offset();
         conditions.add("%s >= %d".formatted(column, offset));
         final OptionalLong limit = pageRequest.limit();
@@ -190,10 +227,33 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
     }
 
     private String getQualifiedTableName(final TableDefinition tableDefinition) {
-        final StringJoiner qualifiedName = new StringJoiner(".");
-        tableDefinition.catalog().ifPresent(qualifiedName::add);
-        tableDefinition.schemaName().ifPresent(qualifiedName::add);
-        qualifiedName.add(tableDefinition.tableName());
+        final StringJoiner qualifiedName = new StringJoiner(QUALIFIER_SEPARATOR);
+        tableDefinition.catalog().ifPresent(catalog -> qualifiedName.add(quote(catalog)));
+        tableDefinition.schemaName().ifPresent(schemaName -> qualifiedName.add(quote(schemaName)));
+        qualifiedName.add(quoteQualified(tableDefinition.tableName()));
         return qualifiedName.toString();
+    }
+
+    /**
+     * Quote each segment of a possibly dot-qualified name: processors may pass "schema.table" as the table name
+     */
+    private String quoteQualified(final String name) {
+        if (!quoteIdentifiers) {
+            return name;
+        }
+        final StringJoiner quoted = new StringJoiner(QUALIFIER_SEPARATOR);
+        Arrays.stream(name.split("\\.")).map(this::quote).forEach(quoted::add);
+        return quoted.toString();
+    }
+
+    private String quote(final String identifier) {
+        if (!quoteIdentifiers || isQuoted(identifier)) {
+            return identifier;
+        }
+        return QUOTE + identifier + QUOTE;
+    }
+
+    private static boolean isQuoted(final String identifier) {
+        return identifier.length() >= 2 && identifier.charAt(0) == QUOTE && identifier.charAt(identifier.length() - 1) == QUOTE;
     }
 }

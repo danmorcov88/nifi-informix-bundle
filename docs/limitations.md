@@ -33,5 +33,9 @@ In other words: read-only flows (`QueryDatabaseTable`, `GenerateTableFetch`) can
 - **Non-logged databases** (`CREATE DATABASE` without `WITH LOG`) have no transactions. Processors
   that rely on rollback (`PutDatabaseRecord` batches) cannot recover partially applied batches there.
 - **`DELIMIDENT`.** Double-quoted identifiers only work when the Informix session has `DELIMIDENT`
-  set; otherwise `"name"` is a string literal. Identifier quoting will therefore be off by default and
-  opt-in through a service property.
+  set; otherwise `"name"` is a string literal. Identifier quoting is therefore **off by default** and
+  opt-in through the service's *Quote Identifiers* property. Turn it on only with `DELIMIDENT=Y` in
+  the JDBC URL (`jdbc:informix-sqli://host:port/db:INFORMIXSERVER=srv;DELIMIDENT=Y`) or in the
+  server environment. When on, the dialect quotes table and column names it emits (including
+  each segment of a dotted `schema.table` name) and leaves already-quoted names alone; it cannot
+  quote names inside WHERE / ORDER BY text you supply, nor a `database@server:table` reference.

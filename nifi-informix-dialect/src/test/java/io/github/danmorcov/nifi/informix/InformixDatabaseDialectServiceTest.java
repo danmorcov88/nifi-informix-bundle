@@ -172,6 +172,52 @@ class InformixDatabaseDialectServiceTest {
         assertThrows(IllegalArgumentException.class, () -> service.getStatement(request));
     }
 
+    @Test
+    void testQuoteIdentifiersDefaultOff() {
+        runner.enableControllerService(service);
+        assertEquals("SELECT id, label FROM orders", sql(select(TABLE, null, null, null)));
+    }
+
+    @Test
+    void testQuoteIdentifiersSelect() {
+        enableQuoting();
+        final StatementRequest request = select(TABLE, "label IS NOT NULL", "id", page(25, 100, "id"));
+        assertEquals("SELECT \"id\", \"label\" FROM \"orders\" WHERE label IS NOT NULL AND \"id\" >= 25 AND \"id\" < 125 ORDER BY id", sql(request));
+    }
+
+    @Test
+    void testQuoteIdentifiersQualifiedTable() {
+        enableQuoting();
+        final TableDefinition table = new TableDefinition(Optional.of("stores"), Optional.of("informix"), TABLE_NAME, List.of(ID));
+        assertEquals("SELECT \"id\" FROM \"stores\".\"informix\".\"orders\"", sql(select(table, null, null, null)));
+    }
+
+    @Test
+    void testQuoteIdentifiersDottedTableName() {
+        enableQuoting();
+        final TableDefinition table = new TableDefinition(Optional.empty(), Optional.empty(), "informix.orders", List.of(ID));
+        assertEquals("SELECT \"id\" FROM \"informix\".\"orders\"", sql(select(table, null, null, null)));
+    }
+
+    @Test
+    void testQuoteIdentifiersAlreadyQuoted() {
+        enableQuoting();
+        final ColumnDefinition quotedId = new StandardColumnDefinition("\"Id\"", Types.INTEGER, ColumnDefinition.Nullable.NO, true);
+        final TableDefinition table = new TableDefinition(Optional.empty(), Optional.empty(), "\"Orders\"", List.of(quotedId));
+        assertEquals("SELECT \"Id\" FROM \"Orders\"", sql(select(table, null, null, null)));
+    }
+
+    @Test
+    void testQuoteIdentifiersCreate() {
+        enableQuoting();
+        assertEquals("CREATE TABLE \"orders\" (\"id\" INTEGER NOT NULL PRIMARY KEY, \"label\" VARCHAR)", sql(new StandardStatementRequest(StatementType.CREATE, TABLE)));
+    }
+
+    private void enableQuoting() {
+        runner.setProperty(service, InformixDatabaseDialectService.QUOTE_IDENTIFIERS, "true");
+        runner.enableControllerService(service);
+    }
+
     private String sql(final StatementRequest request) {
         return service.getStatement(request).sql();
     }

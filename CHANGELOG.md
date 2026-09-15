@@ -13,3 +13,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `SELECT` statements use Informix `SKIP n FIRST m` paging (placed directly after `SELECT`,
   `SKIP 0` omitted). Paging by index column emits `col >= offset AND col < offset + limit`,
   matching NiFi's built-in adapters.
+- *Quote Identifiers* property (default `false`, because Informix needs `DELIMIDENT=Y` for delimited
+  identifiers). When enabled, table and column names are double-quoted; already-quoted names and
+  dotted `schema.table` names are handled.
