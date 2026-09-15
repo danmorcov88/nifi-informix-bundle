@@ -34,6 +34,9 @@ final class InformixDataTypes {
     /** Bounded string for key columns: LVARCHAR exceeds the maximum index key size (error -550) */
     static final String KEY_STRING_TYPE = "VARCHAR(255)";
 
+    /** Cast target for string parameters: CAST(x AS LVARCHAR) without a length silently truncates to 2048 */
+    static final String PARAMETER_STRING_TYPE = "LVARCHAR(32739)";
+
     /** Simple large object for binary data; unlike BLOB it needs no sbspace */
     static final String BINARY_TYPE = "BYTE";
 
@@ -50,6 +53,15 @@ final class InformixDataTypes {
     static String getKeyTypeName(final int jdbcType) {
         final String typeName = getTypeName(jdbcType);
         return STRING_TYPE.equals(typeName) ? KEY_STRING_TYPE : typeName;
+    }
+
+    /**
+     * Type name for casting a statement parameter, e.g. CAST(? AS type), so that Informix can resolve
+     * the parameter type inside a MERGE source query without truncating long strings
+     */
+    static String getParameterTypeName(final int jdbcType) {
+        final String typeName = getTypeName(jdbcType);
+        return STRING_TYPE.equals(typeName) ? PARAMETER_STRING_TYPE : typeName;
     }
 
     static String getTypeName(final int jdbcType) {

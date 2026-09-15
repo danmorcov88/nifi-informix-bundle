@@ -73,13 +73,77 @@ class InformixDatabaseDialectServiceTest {
 
     @Test
     void testGetSupportedStatementTypes() {
-        assertEquals(Set.of(StatementType.ALTER, StatementType.CREATE, StatementType.SELECT), service.getSupportedStatementTypes());
+        assertEquals(Set.of(StatementType.values()), service.getSupportedStatementTypes());
     }
 
     @Test
-    void testUpsertUnsupported() {
+    void testUpsert() {
         final StatementRequest request = new StandardStatementRequest(StatementType.UPSERT, TABLE);
-        assertThrows(UnsupportedOperationException.class, () -> service.getStatement(request));
+        assertEquals("MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR(32739)) AS label FROM sysmaster:sysdual) n"
+                + " ON (t.id = n.id)"
+                + " WHEN MATCHED THEN UPDATE SET label = n.label"
+                + " WHEN NOT MATCHED THEN INSERT (id, label) VALUES (n.id, n.label)", sql(request));
+    }
+
+    @Test
+    void testUpsertCompositeKeyAndTypes() {
+        final ColumnDefinition region = new StandardColumnDefinition("region", Types.VARCHAR, ColumnDefinition.Nullable.NO, true);
+        final ColumnDefinition amount = new StandardColumnDefinition("amount", Types.DECIMAL, ColumnDefinition.Nullable.YES, false);
+        final ColumnDefinition updated = new StandardColumnDefinition("updated", Types.TIMESTAMP, ColumnDefinition.Nullable.YES, false);
+        final TableDefinition table = new TableDefinition(Optional.empty(), Optional.empty(), TABLE_NAME, List.of(ID, region, amount, updated));
+        assertEquals("MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR(32739)) AS region,"
+                + " CAST(? AS DECIMAL(32,10)) AS amount, CAST(? AS DATETIME YEAR TO FRACTION(5)) AS updated FROM sysmaster:sysdual) n"
+                + " ON (t.id = n.id AND t.region = n.region)"
+                + " WHEN MATCHED THEN UPDATE SET amount = n.amount, updated = n.updated"
+                + " WHEN NOT MATCHED THEN INSERT (id, region, amount, updated) VALUES (n.id, n.region, n.amount, n.updated)",
+                sql(new StandardStatementRequest(StatementType.UPSERT, table)));
+    }
+
+    @Test
+    void testUpsertAllColumnsAreKeysOmitsUpdate() {
+        final TableDefinition table = new TableDefinition(Optional.empty(), Optional.empty(), TABLE_NAME, List.of(ID));
+        assertEquals("MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id FROM sysmaster:sysdual) n ON (t.id = n.id)"
+                + " WHEN NOT MATCHED THEN INSERT (id) VALUES (n.id)", sql(new StandardStatementRequest(StatementType.UPSERT, table)));
+    }
+
+    @Test
+    void testUpsertParameterCountMatchesColumns() {
+        final String sql = sql(new StandardStatementRequest(StatementType.UPSERT, TABLE));
+        assertEquals(TABLE.columns().size(), sql.chars().filter(c -> c == '?').count());
+    }
+
+    @Test
+    void testUpsertRequiresKeyColumns() {
+        final TableDefinition table = new TableDefinition(Optional.empty(), Optional.empty(), TABLE_NAME, List.of(LABEL));
+        final StatementRequest request = new StandardStatementRequest(StatementType.UPSERT, table);
+        assertThrows(IllegalArgumentException.class, () -> service.getStatement(request));
+    }
+
+    @Test
+    void testUpsertRequiresColumns() {
+        final TableDefinition table = new TableDefinition(Optional.empty(), Optional.empty(), TABLE_NAME, List.of());
+        final StatementRequest request = new StandardStatementRequest(StatementType.UPSERT, table);
+        assertThrows(IllegalArgumentException.class, () -> service.getStatement(request));
+    }
+
+    @Test
+    void testInsertIgnore() {
+        final StatementRequest request = new StandardStatementRequest(StatementType.INSERT_IGNORE, TABLE);
+        assertEquals("MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR(32739)) AS label FROM sysmaster:sysdual) n"
+                + " ON (t.id = n.id)"
+                + " WHEN NOT MATCHED THEN INSERT (id, label) VALUES (n.id, n.label)", sql(request));
+    }
+
+    @Test
+    void testUpsertQuotedIdentifiersFromProcessor() {
+        enableQuoting();
+        final ColumnDefinition quotedId = new StandardColumnDefinition("\"Id\"", Types.INTEGER, ColumnDefinition.Nullable.NO, true);
+        final ColumnDefinition quotedLabel = new StandardColumnDefinition("\"Label\"", Types.VARCHAR, ColumnDefinition.Nullable.YES, false);
+        final TableDefinition table = new TableDefinition(Optional.empty(), Optional.empty(), "\"Orders\"", List.of(quotedId, quotedLabel));
+        assertEquals("MERGE INTO \"Orders\" t USING (SELECT CAST(? AS INTEGER) AS \"Id\", CAST(? AS LVARCHAR(32739)) AS \"Label\" FROM sysmaster:sysdual) n"
+                + " ON (t.\"Id\" = n.\"Id\")"
+                + " WHEN MATCHED THEN UPDATE SET \"Label\" = n.\"Label\""
+                + " WHEN NOT MATCHED THEN INSERT (\"Id\", \"Label\") VALUES (n.\"Id\", n.\"Label\")", sql(new StandardStatementRequest(StatementType.UPSERT, table)));
     }
 
     @Test

@@ -43,12 +43,13 @@ import java.util.StringJoiner;
 /**
  * Database Dialect Service generating SQL statements for IBM Informix.
  * <p>
- * SELECT statements use Informix SKIP/FIRST paging; CREATE and ALTER use Informix column types.
- * MERGE-based upsert is added incrementally.
+ * SELECT statements use Informix SKIP/FIRST paging, CREATE and ALTER use Informix column types,
+ * UPSERT and INSERT_IGNORE are rendered as MERGE statements.
  */
 @CapabilityDescription("""
         Database Dialect Service supporting IBM Informix.
-        Supported Statement Types: ALTER, CREATE, SELECT.
+        Supported Statement Types: ALTER, CREATE, SELECT, UPSERT, INSERT_IGNORE.
+        UPSERT and INSERT_IGNORE are rendered as MERGE statements (Informix 11.50 or later).
         Identifiers are not quoted by default because Informix requires DELIMIDENT for delimited identifiers.
         """
 )
@@ -76,12 +77,21 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
 
     private static final String QUALIFIER_SEPARATOR = ".";
 
+    private static final String TARGET_ALIAS = "t";
+
+    private static final String SOURCE_ALIAS = "n";
+
+    /** Single-row system table available since Informix 11.70, used as the MERGE source */
+    private static final String DUAL_TABLE = "sysmaster:sysdual";
+
     private volatile boolean quoteIdentifiers;
 
     private static final Set<StatementType> SUPPORTED_STATEMENT_TYPES = Set.of(
             StatementType.ALTER,
             StatementType.CREATE,
-            StatementType.SELECT
+            StatementType.SELECT,
+            StatementType.UPSERT,
+            StatementType.INSERT_IGNORE
     );
 
     @Override
@@ -103,7 +113,8 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
             case ALTER -> getAlterStatement(statementRequest.tableDefinition());
             case CREATE -> getCreateStatement(statementRequest.tableDefinition());
             case SELECT -> getSelectStatement(statementRequest);
-            default -> throw new UnsupportedOperationException("Statement Type [%s] not supported".formatted(statementType));
+            case UPSERT -> getMergeStatement(statementRequest.tableDefinition(), true);
+            case INSERT_IGNORE -> getMergeStatement(statementRequest.tableDefinition(), false);
         };
         return new StandardStatementResponse(sql);
     }
@@ -150,6 +161,57 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
             columns.add("PRIMARY KEY (%s)".formatted(primaryKeyColumns));
         }
         return "CREATE TABLE %s (%s)".formatted(getQualifiedTableName(tableDefinition), columns);
+    }
+
+    /**
+     * Upsert as MERGE with a single-row source built from statement parameters:
+     * <pre>
+     * MERGE INTO orders t USING (SELECT CAST(? AS INTEGER) AS id, CAST(? AS LVARCHAR(32739)) AS label FROM sysmaster:sysdual) n
+     * ON (t.id = n.id) WHEN MATCHED THEN UPDATE SET label = n.label WHEN NOT MATCHED THEN INSERT (id, label) VALUES (n.id, n.label)
+     * </pre>
+     * Every column appears exactly once as a parameter, in table definition order, which is what
+     * PutDatabaseRecord expects when binding record values. Parameters are cast so that Informix can
+     * resolve their types inside the source query. Without updateOnMatch the statement only inserts,
+     * which ignores records whose key already exists.
+     */
+    private String getMergeStatement(final TableDefinition tableDefinition, final boolean updateOnMatch) {
+        final List<ColumnDefinition> columns = tableDefinition.columns();
+        if (columns.isEmpty()) {
+            throw new IllegalArgumentException("Column names required for MERGE statement");
+        }
+        final List<ColumnDefinition> keyColumns = columns.stream().filter(ColumnDefinition::primaryKey).toList();
+        if (keyColumns.isEmpty()) {
+            throw new IllegalArgumentException("Key column names required for MERGE statement");
+        }
+
+        final StringJoiner sourceColumns = new StringJoiner(COLUMN_SEPARATOR);
+        final StringJoiner insertColumns = new StringJoiner(COLUMN_SEPARATOR);
+        final StringJoiner insertValues = new StringJoiner(COLUMN_SEPARATOR);
+        final StringJoiner updateAssignments = new StringJoiner(COLUMN_SEPARATOR);
+        for (final ColumnDefinition column : columns) {
+            final String columnName = quote(column.columnName());
+            sourceColumns.add("CAST(? AS %s) AS %s".formatted(InformixDataTypes.getParameterTypeName(column.dataType()), columnName));
+            insertColumns.add(columnName);
+            insertValues.add(SOURCE_ALIAS + QUALIFIER_SEPARATOR + columnName);
+            if (!column.primaryKey()) {
+                updateAssignments.add("%s = %s.%s".formatted(columnName, SOURCE_ALIAS, columnName));
+            }
+        }
+
+        final StringJoiner matchConditions = new StringJoiner(" AND ");
+        for (final ColumnDefinition keyColumn : keyColumns) {
+            final String columnName = quote(keyColumn.columnName());
+            matchConditions.add("%s.%s = %s.%s".formatted(TARGET_ALIAS, columnName, SOURCE_ALIAS, columnName));
+        }
+
+        final StringBuilder sql = new StringBuilder();
+        sql.append("MERGE INTO %s %s USING (SELECT %s FROM %s) %s ON (%s)".formatted(
+                getQualifiedTableName(tableDefinition), TARGET_ALIAS, sourceColumns, DUAL_TABLE, SOURCE_ALIAS, matchConditions));
+        if (updateOnMatch && updateAssignments.length() > 0) {
+            sql.append(" WHEN MATCHED THEN UPDATE SET ").append(updateAssignments);
+        }
+        sql.append(" WHEN NOT MATCHED THEN INSERT (%s) VALUES (%s)".formatted(insertColumns, insertValues));
+        return sql.toString();
     }
 
     /**

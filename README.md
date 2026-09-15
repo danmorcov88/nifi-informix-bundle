@@ -20,15 +20,16 @@ No new processors. No bundled JDBC driver. Just correct Informix SQL.
 ## Status
 
 **Early development.** The service loads in NiFi 2.12.0 and generates Informix `SELECT` statements
-(`SKIP`/`FIRST` paging) and `CREATE TABLE` / `ALTER TABLE` with Informix column types. Upsert is
-not there yet — see [CHANGELOG.md](CHANGELOG.md).
+(`SKIP`/`FIRST` paging), `CREATE TABLE` / `ALTER TABLE` with Informix column types, and
+`UPSERT` / `INSERT_IGNORE` as `MERGE`. Every statement shape has been executed against a real
+Informix 15.0.1; automated integration tests and the demo are next — see [CHANGELOG.md](CHANGELOG.md).
 
 | Capability | Status |
 |---|---|
 | Service loads and enables in NiFi 2.12.0 (verified on `apache/nifi:2.12.0`) | done |
 | `SELECT` with `SKIP` / `FIRST` paging | done — verified on Informix 15.0.1 |
 | Configurable identifier quoting (`DELIMIDENT`) | done |
-| `UPSERT` / `INSERT_IGNORE` via `MERGE` | planned |
+| `UPSERT` / `INSERT_IGNORE` via `MERGE` | done — verified with the IBM JDBC driver on Informix 15.0.1 |
 | `CREATE TABLE` / `ALTER TABLE` with Informix types | done — verified on Informix 15.0.1 |
 | Integration tests on a real Informix (Testcontainers) | planned |
 | Docker demo | planned |

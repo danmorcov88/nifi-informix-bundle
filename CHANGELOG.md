@@ -8,7 +8,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 - Maven multi-module skeleton targeting Apache NiFi 2.12.0 and Java 21.
 - `InformixDatabaseDialectService` controller service, registered and loadable as a NAR.
-  `UPSERT` and `INSERT_IGNORE` follow in a later release.
 - Unit tests with `nifi-mock`; GitHub Actions build on every push.
 - `SELECT` statements use Informix `SKIP n FIRST m` paging (placed directly after `SELECT`,
   `SKIP 0` omitted). Paging by index column emits `col >= offset AND col < offset + limit`,
@@ -19,3 +18,5 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `CREATE TABLE` / `ALTER TABLE ADD (...)` with Informix column types (`LVARCHAR`, `DECIMAL(32,10)`,
   `DATETIME YEAR TO FRACTION(5)`, `BYTE`, ...), table-level `PRIMARY KEY (...)` so composite keys
   work, and `VARCHAR(255)` for string key columns to stay within the index key size.
+- `UPSERT` and `INSERT_IGNORE` as `MERGE INTO ... USING (SELECT CAST(? AS ...) ... FROM sysmaster:sysdual)`,
+  binding every record value once in column order as `PutDatabaseRecord` expects.
