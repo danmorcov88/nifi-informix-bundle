@@ -32,7 +32,6 @@ import org.apache.nifi.database.dialect.service.api.StatementResponse;
 import org.apache.nifi.database.dialect.service.api.StatementType;
 import org.apache.nifi.database.dialect.service.api.TableDefinition;
 
-import java.sql.JDBCType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -44,8 +43,8 @@ import java.util.StringJoiner;
 /**
  * Database Dialect Service generating SQL statements for IBM Informix.
  * <p>
- * SELECT statements use Informix SKIP/FIRST paging. ALTER and CREATE still render ANSI SQL;
- * Informix type mapping and MERGE upsert are added incrementally.
+ * SELECT statements use Informix SKIP/FIRST paging; CREATE and ALTER use Informix column types.
+ * MERGE-based upsert is added incrementally.
  */
 @CapabilityDescription("""
         Database Dialect Service supporting IBM Informix.
@@ -114,34 +113,43 @@ public class InformixDatabaseDialectService extends AbstractControllerService im
         return SUPPORTED_STATEMENT_TYPES;
     }
 
+    /**
+     * Informix syntax is ALTER TABLE ... ADD (column type, ...). NOT NULL is deliberately omitted:
+     * Informix rejects adding a NOT NULL column without a default to a table that already has rows.
+     */
     private String getAlterStatement(final TableDefinition tableDefinition) {
         final StringJoiner columns = new StringJoiner(COLUMN_SEPARATOR);
         for (final ColumnDefinition column : tableDefinition.columns()) {
-            columns.add(getColumnDeclaration(column, false));
+            columns.add(quote(column.columnName()) + ' ' + InformixDataTypes.getTypeName(column.dataType()));
         }
-        return "ALTER TABLE %s ADD COLUMNS (%s)".formatted(getQualifiedTableName(tableDefinition), columns);
+        return "ALTER TABLE %s ADD (%s)".formatted(getQualifiedTableName(tableDefinition), columns);
     }
 
+    /**
+     * Primary key columns are declared NOT NULL and collected into a table-level constraint,
+     * which is the only form that works for composite keys. String key columns get a bounded type
+     * because Informix limits the total key size of an index.
+     */
     private String getCreateStatement(final TableDefinition tableDefinition) {
         final StringJoiner columns = new StringJoiner(COLUMN_SEPARATOR);
+        final StringJoiner primaryKeyColumns = new StringJoiner(COLUMN_SEPARATOR);
         for (final ColumnDefinition column : tableDefinition.columns()) {
-            columns.add(getColumnDeclaration(column, true));
+            final String columnName = quote(column.columnName());
+            final StringBuilder declaration = new StringBuilder(columnName);
+            declaration.append(' ');
+            declaration.append(column.primaryKey() ? InformixDataTypes.getKeyTypeName(column.dataType()) : InformixDataTypes.getTypeName(column.dataType()));
+            if (column.primaryKey() || ColumnDefinition.Nullable.NO == column.nullable()) {
+                declaration.append(" NOT NULL");
+            }
+            columns.add(declaration.toString());
+            if (column.primaryKey()) {
+                primaryKeyColumns.add(columnName);
+            }
+        }
+        if (primaryKeyColumns.length() > 0) {
+            columns.add("PRIMARY KEY (%s)".formatted(primaryKeyColumns));
         }
         return "CREATE TABLE %s (%s)".formatted(getQualifiedTableName(tableDefinition), columns);
-    }
-
-    private String getColumnDeclaration(final ColumnDefinition column, final boolean includePrimaryKey) {
-        final StringBuilder declaration = new StringBuilder();
-        declaration.append(quote(column.columnName()));
-        declaration.append(' ');
-        declaration.append(JDBCType.valueOf(column.dataType()).getName());
-        if (ColumnDefinition.Nullable.NO == column.nullable()) {
-            declaration.append(" NOT NULL");
-        }
-        if (includePrimaryKey && column.primaryKey()) {
-            declaration.append(" PRIMARY KEY");
-        }
-        return declaration.toString();
     }
 
     /**

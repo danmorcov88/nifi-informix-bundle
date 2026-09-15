@@ -85,13 +85,50 @@ class InformixDatabaseDialectServiceTest {
     @Test
     void testCreate() {
         final StatementRequest request = new StandardStatementRequest(StatementType.CREATE, TABLE);
-        assertEquals("CREATE TABLE orders (id INTEGER NOT NULL PRIMARY KEY, label VARCHAR)", service.getStatement(request).sql());
+        assertEquals("CREATE TABLE orders (id INTEGER NOT NULL, label LVARCHAR, PRIMARY KEY (id))", sql(request));
+    }
+
+    @Test
+    void testCreateCompositePrimaryKey() {
+        final ColumnDefinition region = new StandardColumnDefinition("region", Types.VARCHAR, ColumnDefinition.Nullable.UNKNOWN, true);
+        final ColumnDefinition amount = new StandardColumnDefinition("amount", Types.DECIMAL, ColumnDefinition.Nullable.NO, false);
+        final TableDefinition table = new TableDefinition(Optional.empty(), Optional.empty(), TABLE_NAME, List.of(ID, region, amount));
+        final StatementRequest request = new StandardStatementRequest(StatementType.CREATE, table);
+        assertEquals("CREATE TABLE orders (id INTEGER NOT NULL, region VARCHAR(255) NOT NULL, amount DECIMAL(32,10) NOT NULL, PRIMARY KEY (id, region))", sql(request));
+    }
+
+    @Test
+    void testCreateWithoutPrimaryKey() {
+        final TableDefinition table = new TableDefinition(Optional.empty(), Optional.empty(), TABLE_NAME, List.of(LABEL));
+        final StatementRequest request = new StandardStatementRequest(StatementType.CREATE, table);
+        assertEquals("CREATE TABLE orders (label LVARCHAR)", sql(request));
+    }
+
+    @Test
+    void testCreateTypeMapping() {
+        final List<ColumnDefinition> columns = List.of(
+                column("c_bool", Types.BOOLEAN), column("c_bit", Types.BIT), column("c_tiny", Types.TINYINT), column("c_small", Types.SMALLINT),
+                column("c_int", Types.INTEGER), column("c_big", Types.BIGINT), column("c_real", Types.REAL), column("c_float", Types.FLOAT),
+                column("c_double", Types.DOUBLE), column("c_dec", Types.DECIMAL), column("c_num", Types.NUMERIC), column("c_char", Types.CHAR),
+                column("c_nvarchar", Types.NVARCHAR), column("c_long", Types.LONGVARCHAR), column("c_other", Types.OTHER), column("c_clob", Types.CLOB),
+                column("c_bin", Types.BINARY), column("c_varbin", Types.VARBINARY), column("c_blob", Types.BLOB), column("c_date", Types.DATE),
+                column("c_time", Types.TIME), column("c_ts", Types.TIMESTAMP), column("c_tstz", Types.TIMESTAMP_WITH_TIMEZONE), column("c_array", Types.ARRAY)
+        );
+        final TableDefinition table = new TableDefinition(Optional.empty(), Optional.empty(), "typetest", columns);
+        assertEquals("CREATE TABLE typetest ("
+                + "c_bool BOOLEAN, c_bit BOOLEAN, c_tiny SMALLINT, c_small SMALLINT, "
+                + "c_int INTEGER, c_big BIGINT, c_real SMALLFLOAT, c_float FLOAT, "
+                + "c_double FLOAT, c_dec DECIMAL(32,10), c_num DECIMAL(32,10), c_char LVARCHAR, "
+                + "c_nvarchar LVARCHAR, c_long LVARCHAR, c_other LVARCHAR, c_clob CLOB, "
+                + "c_bin BYTE, c_varbin BYTE, c_blob BLOB, c_date DATE, "
+                + "c_time DATETIME HOUR TO SECOND, c_ts DATETIME YEAR TO FRACTION(5), c_tstz DATETIME YEAR TO FRACTION(5), c_array ARRAY)",
+                sql(new StandardStatementRequest(StatementType.CREATE, table)));
     }
 
     @Test
     void testAlter() {
         final StatementRequest request = new StandardStatementRequest(StatementType.ALTER, TABLE);
-        assertEquals("ALTER TABLE orders ADD COLUMNS (id INTEGER NOT NULL, label VARCHAR)", service.getStatement(request).sql());
+        assertEquals("ALTER TABLE orders ADD (id INTEGER, label LVARCHAR)", sql(request));
     }
 
     @Test
@@ -210,7 +247,13 @@ class InformixDatabaseDialectServiceTest {
     @Test
     void testQuoteIdentifiersCreate() {
         enableQuoting();
-        assertEquals("CREATE TABLE \"orders\" (\"id\" INTEGER NOT NULL PRIMARY KEY, \"label\" VARCHAR)", sql(new StandardStatementRequest(StatementType.CREATE, TABLE)));
+        assertEquals("CREATE TABLE \"orders\" (\"id\" INTEGER NOT NULL, \"label\" LVARCHAR, PRIMARY KEY (\"id\"))", sql(new StandardStatementRequest(StatementType.CREATE, TABLE)));
+    }
+
+    @Test
+    void testQuoteIdentifiersAlter() {
+        enableQuoting();
+        assertEquals("ALTER TABLE \"orders\" ADD (\"id\" INTEGER, \"label\" LVARCHAR)", sql(new StandardStatementRequest(StatementType.ALTER, TABLE)));
     }
 
     private void enableQuoting() {
@@ -226,6 +269,10 @@ class InformixDatabaseDialectServiceTest {
         return new StandardQueryStatementRequest(
                 StatementType.SELECT, table, Optional.empty(), Optional.ofNullable(where), Optional.ofNullable(orderBy), Optional.ofNullable(page)
         );
+    }
+
+    private static ColumnDefinition column(final String name, final int jdbcType) {
+        return new StandardColumnDefinition(name, jdbcType, ColumnDefinition.Nullable.YES, false);
     }
 
     private static PageRequest page(final long offset, final Integer limit, final String indexColumn) {
