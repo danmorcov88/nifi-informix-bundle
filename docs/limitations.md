@@ -2,7 +2,7 @@
 
 This file lists what the bundle does **not** do, and why. It is updated with every release.
 
-## Current state (0.1.0-SNAPSHOT)
+## Current state (0.1.0)
 
 All five statement types NiFi asks a dialect for are implemented with Informix syntax: `SELECT`,
 `CREATE`, `ALTER`, `UPSERT`, `INSERT_IGNORE`. Plain `INSERT`, `UPDATE` and `DELETE` in

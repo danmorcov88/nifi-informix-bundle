@@ -863,7 +863,7 @@
         "bundle": {
           "group": "io.github.danmorcov",
           "artifact": "nifi-informix-dialect-nar",
-          "version": "0.1.0-SNAPSHOT"
+          "version": "0.1.0"
         },
         "properties": {
           "Quote Identifiers": "false",

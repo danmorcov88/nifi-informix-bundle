@@ -21,7 +21,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 DEMO_DIR=$(pwd)
-NAR_VERSION=${NAR_VERSION:-0.1.0-SNAPSHOT}
+# project version from the parent pom unless overridden
+NAR_VERSION=${NAR_VERSION:-$(sed -n 's#.*<version>\(.*\)</version>.*#\1#p' ../pom.xml | head -1)}
 NAR="../nifi-informix-dialect-nar/target/nifi-informix-dialect-nar-${NAR_VERSION}.nar"
 DRIVER_VERSION=${INFORMIX_JDBC_VERSION:-15.0.1.4}
 DRIVER="drivers/informix-jdbc-${DRIVER_VERSION}.jar"

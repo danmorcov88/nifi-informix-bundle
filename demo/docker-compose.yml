@@ -45,7 +45,7 @@ services:
     ports:
       - "8443:8443"
     volumes:
-      - ../nifi-informix-dialect-nar/target/nifi-informix-dialect-nar-${NAR_VERSION:-0.1.0-SNAPSHOT}.nar:/opt/nifi/nifi-current/nar_extensions/nifi-informix-dialect-nar.nar:ro
+      - ../nifi-informix-dialect-nar/target/nifi-informix-dialect-nar-${NAR_VERSION:-0.1.0}.nar:/opt/nifi/nifi-current/nar_extensions/nifi-informix-dialect-nar.nar:ro
       - ./drivers:/opt/nifi/nifi-current/drivers:ro
     depends_on:
       informix:
