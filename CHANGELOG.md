@@ -3,7 +3,9 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [0.2.0] - 2026-09-16
+
+Visibility release: no changes to the generated SQL. Apache NiFi 2.2.0 – 2.12.0, Java 21, Informix 14.10 and 15.0.1.
 
 ### Added
 - NiFi compatibility workflow: compiles, unit-tests and loads the NAR into every `apache/nifi` 2.x
