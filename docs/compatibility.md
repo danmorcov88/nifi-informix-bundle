@@ -6,9 +6,16 @@ What has actually been tested, not what should work.
 
 | NiFi | Status | How verified |
 |---|---|---|
-| 2.12.0 | supported | NAR loads and the service enables in `apache/nifi:2.12.0`; unit tests compile against the 2.12.0 API |
-| other 2.x | untested | the `DatabaseDialectService` API appeared in 2.x and may change between minor lines |
+| 2.12.0 | supported, primary | integration tests, Docker demo, unit tests; NAR loads and enables in `apache/nifi:2.12.0` |
+| 2.2.0 – 2.11.0 | supported | [compatibility workflow](../.github/workflows/compatibility.yml), weekly and on every release tag: the code is compiled and unit-tested against each version's API, and the NAR is loaded into each `apache/nifi:<version>` image where the service is created and enabled through the REST API |
+| 2.0.0 – 2.1.0 | not supported | the `DatabaseDialectService` API first shipped in 2.2.0 |
 | 1.x | not supported | no `DatabaseDialectService` extension point |
+
+One NAR serves every supported version. The NAR is built against the 2.12.0 API and declares
+`nifi-standard-services-api-nar:2.12.0` as its parent; on an older NiFi the framework picks the
+parent NAR version that is installed and logs a `WARN` from `NarClassLoaders` ("unable to locate
+exact NAR dependency ... Only found one possible match ... Continuing") — that warning is expected
+and harmless. Building with `-Dnifi.version=<your version>` produces a NAR without the warning.
 
 ## Informix
 

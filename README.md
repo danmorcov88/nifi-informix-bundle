@@ -27,7 +27,7 @@ in two minutes. See [CHANGELOG.md](CHANGELOG.md).
 
 | Capability | Status |
 |---|---|
-| Service loads and enables in NiFi 2.12.0 (verified on `apache/nifi:2.12.0`) | done |
+| Service loads and enables in NiFi 2.2.0 – 2.12.0 (each version checked in CI) | done |
 | `SELECT` with `SKIP` / `FIRST` paging | done — verified on Informix 14.10 and 15.0.1 |
 | Configurable identifier quoting (`DELIMIDENT`) | done |
 | `UPSERT` / `INSERT_IGNORE` via `MERGE` | done — verified on Informix 14.10 and 15.0.1 |
@@ -48,7 +48,7 @@ another through `QueryDatabaseTableRecord` → `PutDatabaseRecord` (UPSERT as `M
 
 ## Requirements
 
-- Apache NiFi 2.12.0 (other 2.x lines untested)
+- Apache NiFi 2.2.0 or later (2.12.0 is the primary target; every 2.x line from 2.2.0 is checked by CI — see [docs/compatibility.md](docs/compatibility.md))
 - Java 21
 - IBM Informix 12.10 or 14.10+
 - IBM Informix JDBC driver (`com.ibm.informix:jdbc`), supplied by you — it is not bundled
