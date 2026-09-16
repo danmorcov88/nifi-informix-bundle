@@ -3,6 +3,8 @@
 All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
 ## [0.1.0] - 2026-09-16
 
 First release. Apache NiFi 2.12.0, Java 21, Informix 14.10 and 15.0.1.
