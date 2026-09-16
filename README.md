@@ -1,5 +1,7 @@
 # nifi-informix-bundle
 
+[![CI](https://img.shields.io/github/actions/workflow/status/danmorcov88/nifi-informix-bundle/ci.yml?branch=main&label=CI)](https://github.com/danmorcov88/nifi-informix-bundle/actions/workflows/ci.yml) [![NiFi compatibility](https://img.shields.io/github/actions/workflow/status/danmorcov88/nifi-informix-bundle/compatibility.yml?label=NiFi%202.2.0%E2%80%932.12.0)](https://github.com/danmorcov88/nifi-informix-bundle/actions/workflows/compatibility.yml) [![Release](https://img.shields.io/github/v/release/danmorcov88/nifi-informix-bundle?label=release)](https://github.com/danmorcov88/nifi-informix-bundle/releases/latest) [![License](https://img.shields.io/github/license/danmorcov88/nifi-informix-bundle)](LICENSE)
+
 IBM Informix support for Apache NiFi 2.x database processors.
 
 Apache NiFi generates SQL through a `DatabaseDialectService`. Dialects exist for Generic, Oracle,
