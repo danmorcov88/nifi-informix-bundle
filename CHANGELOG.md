@@ -9,6 +9,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - NiFi compatibility workflow: compiles, unit-tests and loads the NAR into every `apache/nifi` 2.x
   image from 2.2.0 to 2.12.0 (`ci/nar-smoke.sh`), weekly and on release tags.
 - The Docker demo runs end to end in CI alongside the Informix integration tests.
+- The Docker demo has a second path, `GenerateTableFetch` (pages of 2) → `ExecuteSQLRecord` →
+  `PutDatabaseRecord` INSERT_IGNORE into `orders_paged`; `run.sh` prints the `SKIP`/`FIRST`
+  statements the dialect generated, kept in a queue in front of a processor that is never started.
+  Screenshot of the flow in `docs/images/demo-flow.png`.
+- `docs/limitations.md`: the IBM driver returns no URL from `DatabaseMetaData.getURL()`, so NiFi
+  logs a provenance error per batch; data flow is unaffected.
 
 ## [0.1.0] - 2026-09-16
 

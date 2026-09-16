@@ -68,7 +68,8 @@ jobs:
           path: nifi-informix-dialect/target/failsafe-reports
 
   demo:
-    # The Docker demo end to end: Informix + NiFi 2.12.0 + imported flow, rows must arrive in orders_copy
+    # The Docker demo end to end: Informix + NiFi 2.12.0 + imported flow, rows must arrive in
+    # orders_copy and orders_paged, and GenerateTableFetch must have produced SKIP/FIRST statements
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
@@ -80,8 +81,10 @@ jobs:
           cache: maven
       - name: Run the demo
         run: cd demo && ./run.sh | tee demo.log
-      - name: Check that all seven rows were copied
-        run: grep -q "7 row(s) retrieved" demo/demo.log
+      - name: Check that all seven rows reached both tables
+        run: test "$(grep -c '7 row(s) retrieved' demo/demo.log)" -ge 2
+      - name: Check that GenerateTableFetch produced SKIP/FIRST statements
+        run: grep -q 'SELECT SKIP 2 FIRST 2 \* FROM orders WHERE id <= 5 ORDER BY id' demo/demo.log
       - name: NiFi log on failure
         if: failure()
         run: cd demo && docker compose logs nifi | tail -100

@@ -1,7 +1,7 @@
 {
   "flowContents": {
-    "identifier": "90c263d9-038d-3811-ba65-5d803a865429",
-    "instanceIdentifier": "a56184dd-01a0-1000-92b0-fc32fa7e2ea7",
+    "identifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541",
+    "instanceIdentifier": "a8cd597c-01a0-1000-066e-eb1a25df7196",
     "name": "Informix demo",
     "comments": "",
     "position": {
@@ -12,13 +12,13 @@
     "remoteProcessGroups": [],
     "processors": [
       {
-        "identifier": "31dfd55c-44b4-3f23-85a7-2a010fcefd5d",
-        "instanceIdentifier": "a5618716-01a0-1000-512c-0d5c16192224",
-        "name": "Upsert into orders_copy (Informix MERGE)",
-        "comments": "",
+        "identifier": "39fd44f5-db6c-3273-9ef0-7694cd262c64",
+        "instanceIdentifier": "a8cd6418-01a0-1000-9a42-9e910c1a55a3",
+        "name": "Upsert orders_copy (MERGE)",
+        "comments": "UPSERT is rendered as MERGE INTO orders_copy ... USING (SELECT CAST(? AS ...) ... FROM sysmaster:sysdual)",
         "position": {
           "x": 0.0,
-          "y": 250.0
+          "y": 300.0
         },
         "type": "org.apache.nifi.processors.standard.PutDatabaseRecord",
         "bundle": {
@@ -30,9 +30,9 @@
           "Table Name": "orders_copy",
           "Quote Column Identifiers": "false",
           "Max Wait Time": "0 seconds",
-          "Database Connection Pooling Service": "68de61b5-6d88-3267-8e1b-30d885f6b704",
+          "Database Connection Pooling Service": "e5d2ab34-aa08-3e2e-ba40-a5526f6d86dd",
           "Delete Keys": null,
-          "Record Reader": "06767c84-45d6-39db-9aa3-b1bfdc14483f",
+          "Record Reader": "9c85aae7-b6c4-3758-918a-3172fd72a335",
           "Quote Table Identifiers": "false",
           "Schema Name": null,
           "Database Session AutoCommit": "false",
@@ -42,7 +42,7 @@
           "Rollback On Failure": "false",
           "Update Keys": null,
           "Field Containing SQL": null,
-          "Database Dialect Service": "2eb9475e-0729-3b5e-a8ea-69a9d13b1620",
+          "Database Dialect Service": "d8211b18-ee4f-3d72-adb9-0c41a367e232",
           "Data Record Path": null,
           "Statement Type Record Path": null,
           "Column Name Translation Pattern": null,
@@ -282,13 +282,691 @@
         "backoffMechanism": "PENALIZE_FLOWFILE",
         "maxBackoffPeriod": "10 mins",
         "componentType": "PROCESSOR",
-        "groupIdentifier": "90c263d9-038d-3811-ba65-5d803a865429"
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
       },
       {
-        "identifier": "c096852e-623d-3f69-93a3-8d62c59f7ee7",
-        "instanceIdentifier": "a56186ad-01a0-1000-3915-ade6edb49bd4",
-        "name": "Read new orders (Informix)",
-        "comments": "",
+        "identifier": "821b118d-7ce1-3c94-9d0b-e6007737253d",
+        "instanceIdentifier": "a8cd65a2-01a0-1000-f103-a695f9ea2728",
+        "name": "Generated SQL (never started)",
+        "comments": "Never started. The queue in front of it keeps a copy of every statement GenerateTableFetch produced; right-click the queue and choose List queue to read them.",
+        "position": {
+          "x": 1400.0,
+          "y": 0.0
+        },
+        "type": "org.apache.nifi.processors.standard.LogAttribute",
+        "bundle": {
+          "group": "org.apache.nifi",
+          "artifact": "nifi-standard-nar",
+          "version": "2.12.0"
+        },
+        "properties": {
+          "Log FlowFile Properties": "true",
+          "Log Level": "info",
+          "Attributes to Ignore": null,
+          "Attributes to Log": null,
+          "Attributes to Ignore Regular Expression": null,
+          "Output Format": "Line per Attribute",
+          "Log Payload": "false",
+          "Log Prefix": null,
+          "Character Set": "UTF-8",
+          "Attributes to Log Regular Expression": ".*"
+        },
+        "propertyDescriptors": {
+          "Log FlowFile Properties": {
+            "name": "Log FlowFile Properties",
+            "displayName": "Log FlowFile Properties",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Log Level": {
+            "name": "Log Level",
+            "displayName": "Log Level",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Attributes to Ignore": {
+            "name": "Attributes to Ignore",
+            "displayName": "Attributes to Ignore",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Attributes to Log": {
+            "name": "Attributes to Log",
+            "displayName": "Attributes to Log",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Attributes to Ignore Regular Expression": {
+            "name": "Attributes to Ignore Regular Expression",
+            "displayName": "Attributes to Ignore Regular Expression",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Output Format": {
+            "name": "Output Format",
+            "displayName": "Output Format",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Log Payload": {
+            "name": "Log Payload",
+            "displayName": "Log Payload",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Log Prefix": {
+            "name": "Log Prefix",
+            "displayName": "Log Prefix",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Character Set": {
+            "name": "Character Set",
+            "displayName": "Character Set",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Attributes to Log Regular Expression": {
+            "name": "Attributes to Log Regular Expression",
+            "displayName": "Attributes to Log Regular Expression",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          }
+        },
+        "style": {},
+        "schedulingPeriod": "0 sec",
+        "schedulingStrategy": "TIMER_DRIVEN",
+        "executionNode": "ALL",
+        "penaltyDuration": "30 sec",
+        "yieldDuration": "1 sec",
+        "bulletinLevel": "WARN",
+        "runDurationMillis": 25,
+        "concurrentlySchedulableTaskCount": 1,
+        "autoTerminatedRelationships": [
+          "success"
+        ],
+        "scheduledState": "DISABLED",
+        "retryCount": 10,
+        "retriedRelationships": [],
+        "backoffMechanism": "PENALIZE_FLOWFILE",
+        "maxBackoffPeriod": "10 mins",
+        "componentType": "PROCESSOR",
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
+      },
+      {
+        "identifier": "1e359dc6-a797-3f8e-ac6c-e8111ee8d76e",
+        "instanceIdentifier": "a8cd64a5-01a0-1000-f42c-6dfe4041d7cc",
+        "name": "Page orders (SKIP/FIRST)",
+        "comments": "Generates one SQL statement per page of 2 rows: SELECT SKIP 2 FIRST 2 * FROM orders WHERE id <= 5 ORDER BY id",
+        "position": {
+          "x": 700.0,
+          "y": 0.0
+        },
+        "type": "org.apache.nifi.processors.standard.GenerateTableFetch",
+        "bundle": {
+          "group": "org.apache.nifi",
+          "artifact": "nifi-standard-nar",
+          "version": "2.12.0"
+        },
+        "properties": {
+          "Table Name": "orders",
+          "Max Wait Time": "0 seconds",
+          "Partition Size": "2",
+          "Database Connection Pooling Service": "e5d2ab34-aa08-3e2e-ba40-a5526f6d86dd",
+          "Database Type": "Database Dialect Service",
+          "Columns to Return": null,
+          "Maximum-value Columns": "id",
+          "Custom ORDER BY Column": null,
+          "Output Empty FlowFile on Zero Results": "false",
+          "Database Dialect Service": "d8211b18-ee4f-3d72-adb9-0c41a367e232",
+          "Column for Value Partitioning": null,
+          "Additional WHERE Clause": null
+        },
+        "propertyDescriptors": {
+          "Table Name": {
+            "name": "Table Name",
+            "displayName": "Table Name",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Max Wait Time": {
+            "name": "Max Wait Time",
+            "displayName": "Max Wait Time",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Partition Size": {
+            "name": "Partition Size",
+            "displayName": "Partition Size",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Database Connection Pooling Service": {
+            "name": "Database Connection Pooling Service",
+            "displayName": "Database Connection Pooling Service",
+            "identifiesControllerService": true,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Database Type": {
+            "name": "Database Type",
+            "displayName": "Database Type",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Columns to Return": {
+            "name": "Columns to Return",
+            "displayName": "Columns to Return",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Maximum-value Columns": {
+            "name": "Maximum-value Columns",
+            "displayName": "Maximum-value Columns",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Custom ORDER BY Column": {
+            "name": "Custom ORDER BY Column",
+            "displayName": "Custom ORDER BY Column",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Output Empty FlowFile on Zero Results": {
+            "name": "Output Empty FlowFile on Zero Results",
+            "displayName": "Output Empty FlowFile on Zero Results",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Database Dialect Service": {
+            "name": "Database Dialect Service",
+            "displayName": "Database Dialect Service",
+            "identifiesControllerService": true,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Column for Value Partitioning": {
+            "name": "Column for Value Partitioning",
+            "displayName": "Column for Value Partitioning",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Additional WHERE Clause": {
+            "name": "Additional WHERE Clause",
+            "displayName": "Additional WHERE Clause",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          }
+        },
+        "style": {},
+        "schedulingPeriod": "5 sec",
+        "schedulingStrategy": "TIMER_DRIVEN",
+        "executionNode": "ALL",
+        "penaltyDuration": "30 sec",
+        "yieldDuration": "1 sec",
+        "bulletinLevel": "WARN",
+        "runDurationMillis": 0,
+        "concurrentlySchedulableTaskCount": 1,
+        "autoTerminatedRelationships": [
+          "failure"
+        ],
+        "scheduledState": "ENABLED",
+        "retryCount": 10,
+        "retriedRelationships": [],
+        "backoffMechanism": "PENALIZE_FLOWFILE",
+        "maxBackoffPeriod": "10 mins",
+        "componentType": "PROCESSOR",
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
+      },
+      {
+        "identifier": "a951df14-4a04-30e5-956f-5dc4432ed111",
+        "instanceIdentifier": "a8cd654f-01a0-1000-a836-f34401a36dc4",
+        "name": "orders_paged (INSERT_IGNORE)",
+        "comments": "INSERT_IGNORE is rendered as MERGE INTO orders_paged ... WHEN NOT MATCHED THEN INSERT: duplicates are skipped, never an error",
+        "position": {
+          "x": 700.0,
+          "y": 600.0
+        },
+        "type": "org.apache.nifi.processors.standard.PutDatabaseRecord",
+        "bundle": {
+          "group": "org.apache.nifi",
+          "artifact": "nifi-standard-nar",
+          "version": "2.12.0"
+        },
+        "properties": {
+          "Table Name": "orders_paged",
+          "Quote Column Identifiers": "false",
+          "Max Wait Time": "0 seconds",
+          "Database Connection Pooling Service": "e5d2ab34-aa08-3e2e-ba40-a5526f6d86dd",
+          "Delete Keys": null,
+          "Record Reader": "9c85aae7-b6c4-3758-918a-3172fd72a335",
+          "Quote Table Identifiers": "false",
+          "Schema Name": null,
+          "Database Session AutoCommit": "false",
+          "Unmatched Field Behavior": "Ignore Unmatched Fields",
+          "Database Name": null,
+          "Allow Multiple SQL Statements": "false",
+          "Rollback On Failure": "false",
+          "Update Keys": null,
+          "Field Containing SQL": null,
+          "Database Dialect Service": "d8211b18-ee4f-3d72-adb9-0c41a367e232",
+          "Data Record Path": null,
+          "Statement Type Record Path": null,
+          "Column Name Translation Pattern": null,
+          "Column Name Translation Strategy": "REMOVE_UNDERSCORE",
+          "Binary String Format": "UTF-8",
+          "Unmatched Column Behavior": "Fail on Unmatched Columns",
+          "Database Type": "Database Dialect Service",
+          "Post-Processing SQL": null,
+          "Translate Field Names": "true",
+          "Statement Type": "INSERT_IGNORE",
+          "Pre-Processing SQL": null,
+          "Table Schema Cache Size": "100",
+          "Maximum Batch Size": "1000"
+        },
+        "propertyDescriptors": {
+          "Table Name": {
+            "name": "Table Name",
+            "displayName": "Table Name",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Quote Column Identifiers": {
+            "name": "Quote Column Identifiers",
+            "displayName": "Quote Column Identifiers",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Max Wait Time": {
+            "name": "Max Wait Time",
+            "displayName": "Max Wait Time",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Database Connection Pooling Service": {
+            "name": "Database Connection Pooling Service",
+            "displayName": "Database Connection Pooling Service",
+            "identifiesControllerService": true,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Delete Keys": {
+            "name": "Delete Keys",
+            "displayName": "Delete Keys",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Record Reader": {
+            "name": "Record Reader",
+            "displayName": "Record Reader",
+            "identifiesControllerService": true,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Quote Table Identifiers": {
+            "name": "Quote Table Identifiers",
+            "displayName": "Quote Table Identifiers",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Schema Name": {
+            "name": "Schema Name",
+            "displayName": "Schema Name",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Database Session AutoCommit": {
+            "name": "Database Session AutoCommit",
+            "displayName": "Database Session AutoCommit",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Unmatched Field Behavior": {
+            "name": "Unmatched Field Behavior",
+            "displayName": "Unmatched Field Behavior",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Database Name": {
+            "name": "Database Name",
+            "displayName": "Database Name",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Allow Multiple SQL Statements": {
+            "name": "Allow Multiple SQL Statements",
+            "displayName": "Allow Multiple SQL Statements",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Rollback On Failure": {
+            "name": "Rollback On Failure",
+            "displayName": "Rollback On Failure",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Update Keys": {
+            "name": "Update Keys",
+            "displayName": "Update Keys",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Field Containing SQL": {
+            "name": "Field Containing SQL",
+            "displayName": "Field Containing SQL",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Database Dialect Service": {
+            "name": "Database Dialect Service",
+            "displayName": "Database Dialect Service",
+            "identifiesControllerService": true,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Data Record Path": {
+            "name": "Data Record Path",
+            "displayName": "Data Record Path",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Statement Type Record Path": {
+            "name": "Statement Type Record Path",
+            "displayName": "Statement Type Record Path",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Column Name Translation Pattern": {
+            "name": "Column Name Translation Pattern",
+            "displayName": "Column Name Translation Pattern",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Column Name Translation Strategy": {
+            "name": "Column Name Translation Strategy",
+            "displayName": "Column Name Translation Strategy",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Binary String Format": {
+            "name": "Binary String Format",
+            "displayName": "Binary String Format",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Unmatched Column Behavior": {
+            "name": "Unmatched Column Behavior",
+            "displayName": "Unmatched Column Behavior",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Database Type": {
+            "name": "Database Type",
+            "displayName": "Database Type",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Post-Processing SQL": {
+            "name": "Post-Processing SQL",
+            "displayName": "Post-Processing SQL",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Translate Field Names": {
+            "name": "Translate Field Names",
+            "displayName": "Translate Field Names",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Statement Type": {
+            "name": "Statement Type",
+            "displayName": "Statement Type",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Pre-Processing SQL": {
+            "name": "Pre-Processing SQL",
+            "displayName": "Pre-Processing SQL",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Table Schema Cache Size": {
+            "name": "Table Schema Cache Size",
+            "displayName": "Table Schema Cache Size",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Maximum Batch Size": {
+            "name": "Maximum Batch Size",
+            "displayName": "Maximum Batch Size",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          }
+        },
+        "style": {},
+        "schedulingPeriod": "0 sec",
+        "schedulingStrategy": "TIMER_DRIVEN",
+        "executionNode": "ALL",
+        "penaltyDuration": "30 sec",
+        "yieldDuration": "1 sec",
+        "bulletinLevel": "WARN",
+        "runDurationMillis": 0,
+        "concurrentlySchedulableTaskCount": 1,
+        "autoTerminatedRelationships": [
+          "success",
+          "failure",
+          "retry"
+        ],
+        "scheduledState": "ENABLED",
+        "retryCount": 10,
+        "retriedRelationships": [],
+        "backoffMechanism": "PENALIZE_FLOWFILE",
+        "maxBackoffPeriod": "10 mins",
+        "componentType": "PROCESSOR",
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
+      },
+      {
+        "identifier": "fd2008ba-3f89-3968-a160-3517b1f9e8c0",
+        "instanceIdentifier": "a8cd64fd-01a0-1000-a9d6-2bf7a44e37eb",
+        "name": "Run each page",
+        "comments": "Executes the SQL from the FlowFile content and writes the rows as JSON records",
+        "position": {
+          "x": 700.0,
+          "y": 300.0
+        },
+        "type": "org.apache.nifi.processors.standard.ExecuteSQLRecord",
+        "bundle": {
+          "group": "org.apache.nifi",
+          "artifact": "nifi-standard-nar",
+          "version": "2.12.0"
+        },
+        "properties": {
+          "Set Auto Commit": "true",
+          "Max Wait Time": "0 seconds",
+          "SQL Query": null,
+          "Normalize Table/Column Names": "false",
+          "Database Connection Pooling Service": "e5d2ab34-aa08-3e2e-ba40-a5526f6d86dd",
+          "Default Decimal Scale": "0",
+          "SQL Post-Query": null,
+          "Fetch Size": "0",
+          "Output Batch Size": "0",
+          "Use Avro Logical Types": "false",
+          "Record Writer": "2e5875bb-61cc-3dad-a8c0-50143ddc8241",
+          "SQL Pre-Query": null,
+          "Default Decimal Precision": "10",
+          "Max Rows Per FlowFile": "0"
+        },
+        "propertyDescriptors": {
+          "Set Auto Commit": {
+            "name": "Set Auto Commit",
+            "displayName": "Set Auto Commit",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Max Wait Time": {
+            "name": "Max Wait Time",
+            "displayName": "Max Wait Time",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "SQL Query": {
+            "name": "SQL Query",
+            "displayName": "SQL Query",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Normalize Table/Column Names": {
+            "name": "Normalize Table/Column Names",
+            "displayName": "Normalize Table/Column Names",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Database Connection Pooling Service": {
+            "name": "Database Connection Pooling Service",
+            "displayName": "Database Connection Pooling Service",
+            "identifiesControllerService": true,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Default Decimal Scale": {
+            "name": "Default Decimal Scale",
+            "displayName": "Default Decimal Scale",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "SQL Post-Query": {
+            "name": "SQL Post-Query",
+            "displayName": "SQL Post-Query",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Fetch Size": {
+            "name": "Fetch Size",
+            "displayName": "Fetch Size",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Output Batch Size": {
+            "name": "Output Batch Size",
+            "displayName": "Output Batch Size",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Use Avro Logical Types": {
+            "name": "Use Avro Logical Types",
+            "displayName": "Use Avro Logical Types",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Record Writer": {
+            "name": "Record Writer",
+            "displayName": "Record Writer",
+            "identifiesControllerService": true,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "SQL Pre-Query": {
+            "name": "SQL Pre-Query",
+            "displayName": "SQL Pre-Query",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Default Decimal Precision": {
+            "name": "Default Decimal Precision",
+            "displayName": "Default Decimal Precision",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Max Rows Per FlowFile": {
+            "name": "Max Rows Per FlowFile",
+            "displayName": "Max Rows Per FlowFile",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          }
+        },
+        "style": {},
+        "schedulingPeriod": "0 sec",
+        "schedulingStrategy": "TIMER_DRIVEN",
+        "executionNode": "ALL",
+        "penaltyDuration": "30 sec",
+        "yieldDuration": "1 sec",
+        "bulletinLevel": "WARN",
+        "runDurationMillis": 0,
+        "concurrentlySchedulableTaskCount": 1,
+        "autoTerminatedRelationships": [
+          "failure"
+        ],
+        "scheduledState": "ENABLED",
+        "retryCount": 10,
+        "retriedRelationships": [],
+        "backoffMechanism": "PENALIZE_FLOWFILE",
+        "maxBackoffPeriod": "10 mins",
+        "componentType": "PROCESSOR",
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
+      },
+      {
+        "identifier": "22c38894-1029-3325-aa19-81ecf2400d62",
+        "instanceIdentifier": "a8cd63a9-01a0-1000-1644-dc1c27037155",
+        "name": "Read new orders (incremental)",
+        "comments": "Incremental read by id through the Informix dialect: SELECT * FROM orders WHERE id > <last id>",
         "position": {
           "x": 0.0,
           "y": 0.0
@@ -304,7 +982,7 @@
           "Set Auto Commit": null,
           "Max Wait Time": "0 seconds",
           "Normalize Table/Column Names": "false",
-          "Database Connection Pooling Service": "68de61b5-6d88-3267-8e1b-30d885f6b704",
+          "Database Connection Pooling Service": "e5d2ab34-aa08-3e2e-ba40-a5526f6d86dd",
           "Default Decimal Scale": "0",
           "Maximum-value Columns": "id",
           "Custom Query": null,
@@ -314,10 +992,10 @@
           "Use Avro Logical Types": "false",
           "Database Type": "Database Dialect Service",
           "Columns to Return": null,
-          "Record Writer": "0f594351-6bd2-3cea-a7ce-7ec4b315581a",
+          "Record Writer": "2e5875bb-61cc-3dad-a8c0-50143ddc8241",
           "Max Rows Per FlowFile": "0",
           "Default Decimal Precision": "10",
-          "Database Dialect Service": "2eb9475e-0729-3b5e-a8ea-69a9d13b1620",
+          "Database Dialect Service": "d8211b18-ee4f-3d72-adb9-0c41a367e232",
           "Maximum Number of Fragments": "0",
           "Additional WHERE Clause": null
         },
@@ -479,30 +1157,30 @@
         "backoffMechanism": "PENALIZE_FLOWFILE",
         "maxBackoffPeriod": "10 mins",
         "componentType": "PROCESSOR",
-        "groupIdentifier": "90c263d9-038d-3811-ba65-5d803a865429"
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
       }
     ],
     "inputPorts": [],
     "outputPorts": [],
     "connections": [
       {
-        "identifier": "faa1916d-4e31-3a9f-b694-c01f9c514f46",
-        "instanceIdentifier": "a5618757-01a0-1000-ff47-93c834d363eb",
+        "identifier": "27c7fc80-f480-3443-9700-1e24f9118788",
+        "instanceIdentifier": "a8cd6609-01a0-1000-d1a2-a92e79053a45",
         "source": {
-          "id": "c096852e-623d-3f69-93a3-8d62c59f7ee7",
+          "id": "fd2008ba-3f89-3968-a160-3517b1f9e8c0",
           "type": "PROCESSOR",
-          "groupId": "90c263d9-038d-3811-ba65-5d803a865429",
-          "name": "Read new orders (Informix)",
-          "comments": "",
-          "instanceIdentifier": "a56186ad-01a0-1000-3915-ade6edb49bd4"
+          "groupId": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541",
+          "name": "Run each page",
+          "comments": "Executes the SQL from the FlowFile content and writes the rows as JSON records",
+          "instanceIdentifier": "a8cd64fd-01a0-1000-a9d6-2bf7a44e37eb"
         },
         "destination": {
-          "id": "31dfd55c-44b4-3f23-85a7-2a010fcefd5d",
+          "id": "a951df14-4a04-30e5-956f-5dc4432ed111",
           "type": "PROCESSOR",
-          "groupId": "90c263d9-038d-3811-ba65-5d803a865429",
-          "name": "Upsert into orders_copy (Informix MERGE)",
-          "comments": "",
-          "instanceIdentifier": "a5618716-01a0-1000-512c-0d5c16192224"
+          "groupId": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541",
+          "name": "orders_paged (INSERT_IGNORE)",
+          "comments": "INSERT_IGNORE is rendered as MERGE INTO orders_paged ... WHEN NOT MATCHED THEN INSERT: duplicates are skipped, never an error",
+          "instanceIdentifier": "a8cd654f-01a0-1000-a836-f34401a36dc4"
         },
         "labelIndex": 1,
         "zIndex": 0,
@@ -517,15 +1195,164 @@
         "loadBalanceStrategy": "DO_NOT_LOAD_BALANCE",
         "loadBalanceCompression": "DO_NOT_COMPRESS",
         "componentType": "CONNECTION",
-        "groupIdentifier": "90c263d9-038d-3811-ba65-5d803a865429"
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
+      },
+      {
+        "identifier": "eebb874b-8a41-3e0f-91cb-310b7caa7689",
+        "instanceIdentifier": "a8cd645e-01a0-1000-f7b6-d4241a1c8b87",
+        "source": {
+          "id": "22c38894-1029-3325-aa19-81ecf2400d62",
+          "type": "PROCESSOR",
+          "groupId": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541",
+          "name": "Read new orders (incremental)",
+          "comments": "Incremental read by id through the Informix dialect: SELECT * FROM orders WHERE id > <last id>",
+          "instanceIdentifier": "a8cd63a9-01a0-1000-1644-dc1c27037155"
+        },
+        "destination": {
+          "id": "39fd44f5-db6c-3273-9ef0-7694cd262c64",
+          "type": "PROCESSOR",
+          "groupId": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541",
+          "name": "Upsert orders_copy (MERGE)",
+          "comments": "UPSERT is rendered as MERGE INTO orders_copy ... USING (SELECT CAST(? AS ...) ... FROM sysmaster:sysdual)",
+          "instanceIdentifier": "a8cd6418-01a0-1000-9a42-9e910c1a55a3"
+        },
+        "labelIndex": 1,
+        "zIndex": 0,
+        "selectedRelationships": [
+          "success"
+        ],
+        "backPressureObjectThreshold": 10000,
+        "backPressureDataSizeThreshold": "1 GB",
+        "flowFileExpiration": "0 sec",
+        "prioritizers": [],
+        "bends": [],
+        "loadBalanceStrategy": "DO_NOT_LOAD_BALANCE",
+        "loadBalanceCompression": "DO_NOT_COMPRESS",
+        "componentType": "CONNECTION",
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
+      },
+      {
+        "identifier": "5e121938-8b3e-3545-b809-2797c693d9d9",
+        "instanceIdentifier": "a8cd65f2-01a0-1000-0632-cd8a4d438c2e",
+        "name": "Generated SQL",
+        "source": {
+          "id": "1e359dc6-a797-3f8e-ac6c-e8111ee8d76e",
+          "type": "PROCESSOR",
+          "groupId": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541",
+          "name": "Page orders (SKIP/FIRST)",
+          "comments": "Generates one SQL statement per page of 2 rows: SELECT SKIP 2 FIRST 2 * FROM orders WHERE id <= 5 ORDER BY id",
+          "instanceIdentifier": "a8cd64a5-01a0-1000-f42c-6dfe4041d7cc"
+        },
+        "destination": {
+          "id": "821b118d-7ce1-3c94-9d0b-e6007737253d",
+          "type": "PROCESSOR",
+          "groupId": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541",
+          "name": "Generated SQL (never started)",
+          "comments": "Never started. The queue in front of it keeps a copy of every statement GenerateTableFetch produced; right-click the queue and choose List queue to read them.",
+          "instanceIdentifier": "a8cd65a2-01a0-1000-f103-a695f9ea2728"
+        },
+        "labelIndex": 1,
+        "zIndex": 0,
+        "selectedRelationships": [
+          "success"
+        ],
+        "backPressureObjectThreshold": 10000,
+        "backPressureDataSizeThreshold": "1 GB",
+        "flowFileExpiration": "0 sec",
+        "prioritizers": [],
+        "bends": [],
+        "loadBalanceStrategy": "DO_NOT_LOAD_BALANCE",
+        "loadBalanceCompression": "DO_NOT_COMPRESS",
+        "componentType": "CONNECTION",
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
+      },
+      {
+        "identifier": "ea8de2cf-49df-34ac-8a0a-5d77f65e363e",
+        "instanceIdentifier": "a8cd65de-01a0-1000-9008-4c166138923d",
+        "source": {
+          "id": "1e359dc6-a797-3f8e-ac6c-e8111ee8d76e",
+          "type": "PROCESSOR",
+          "groupId": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541",
+          "name": "Page orders (SKIP/FIRST)",
+          "comments": "Generates one SQL statement per page of 2 rows: SELECT SKIP 2 FIRST 2 * FROM orders WHERE id <= 5 ORDER BY id",
+          "instanceIdentifier": "a8cd64a5-01a0-1000-f42c-6dfe4041d7cc"
+        },
+        "destination": {
+          "id": "fd2008ba-3f89-3968-a160-3517b1f9e8c0",
+          "type": "PROCESSOR",
+          "groupId": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541",
+          "name": "Run each page",
+          "comments": "Executes the SQL from the FlowFile content and writes the rows as JSON records",
+          "instanceIdentifier": "a8cd64fd-01a0-1000-a9d6-2bf7a44e37eb"
+        },
+        "labelIndex": 1,
+        "zIndex": 0,
+        "selectedRelationships": [
+          "success"
+        ],
+        "backPressureObjectThreshold": 10000,
+        "backPressureDataSizeThreshold": "1 GB",
+        "flowFileExpiration": "0 sec",
+        "prioritizers": [],
+        "bends": [],
+        "loadBalanceStrategy": "DO_NOT_LOAD_BALANCE",
+        "loadBalanceCompression": "DO_NOT_COMPRESS",
+        "componentType": "CONNECTION",
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
       }
     ],
     "labels": [],
     "funnels": [],
     "controllerServices": [
       {
-        "identifier": "68de61b5-6d88-3267-8e1b-30d885f6b704",
-        "instanceIdentifier": "a5618558-01a0-1000-cf0a-e8e0245ff8cd",
+        "identifier": "d8211b18-ee4f-3d72-adb9-0c41a367e232",
+        "instanceIdentifier": "a8cd5ce4-01a0-1000-2bb1-af4790603612",
+        "name": "Informix Dialect",
+        "comments": "",
+        "type": "io.github.danmorcov.nifi.informix.InformixDatabaseDialectService",
+        "bundle": {
+          "group": "io.github.danmorcov",
+          "artifact": "nifi-informix-dialect-nar",
+          "version": "0.2.0-SNAPSHOT"
+        },
+        "properties": {
+          "Quote Identifiers": "false",
+          "Upsert String Length": "2048"
+        },
+        "propertyDescriptors": {
+          "Quote Identifiers": {
+            "name": "Quote Identifiers",
+            "displayName": "Quote Identifiers",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          },
+          "Upsert String Length": {
+            "name": "Upsert String Length",
+            "displayName": "Upsert String Length",
+            "identifiesControllerService": false,
+            "sensitive": false,
+            "dynamic": false
+          }
+        },
+        "controllerServiceApis": [
+          {
+            "type": "org.apache.nifi.database.dialect.service.api.DatabaseDialectService",
+            "bundle": {
+              "group": "org.apache.nifi",
+              "artifact": "nifi-standard-services-api-nar",
+              "version": "2.12.0"
+            }
+          }
+        ],
+        "scheduledState": "DISABLED",
+        "bulletinLevel": "WARN",
+        "componentType": "CONTROLLER_SERVICE",
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
+      },
+      {
+        "identifier": "e5d2ab34-aa08-3e2e-ba40-a5526f6d86dd",
+        "instanceIdentifier": "a8cd5d69-01a0-1000-9f92-f5f4e2f0d510",
         "name": "Informix Connection Pool",
         "comments": "",
         "type": "org.apache.nifi.dbcp.DBCPConnectionPool",
@@ -569,9 +1396,9 @@
             "resourceDefinition": {
               "cardinality": "MULTIPLE",
               "resourceTypes": [
-                "FILE",
                 "URL",
-                "DIRECTORY"
+                "DIRECTORY",
+                "FILE"
               ]
             }
           },
@@ -694,11 +1521,11 @@
         "scheduledState": "DISABLED",
         "bulletinLevel": "WARN",
         "componentType": "CONTROLLER_SERVICE",
-        "groupIdentifier": "90c263d9-038d-3811-ba65-5d803a865429"
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
       },
       {
-        "identifier": "06767c84-45d6-39db-9aa3-b1bfdc14483f",
-        "instanceIdentifier": "a5618652-01a0-1000-cc96-00756face53e",
+        "identifier": "9c85aae7-b6c4-3758-918a-3172fd72a335",
+        "instanceIdentifier": "a8cd5e70-01a0-1000-ec98-d53e64f94657",
         "name": "JSON Reader",
         "comments": "",
         "type": "org.apache.nifi.json.JsonTreeReader",
@@ -852,57 +1679,11 @@
         "scheduledState": "DISABLED",
         "bulletinLevel": "WARN",
         "componentType": "CONTROLLER_SERVICE",
-        "groupIdentifier": "90c263d9-038d-3811-ba65-5d803a865429"
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
       },
       {
-        "identifier": "2eb9475e-0729-3b5e-a8ea-69a9d13b1620",
-        "instanceIdentifier": "a5618507-01a0-1000-ba78-38fc14225a1f",
-        "name": "Informix Dialect",
-        "comments": "",
-        "type": "io.github.danmorcov.nifi.informix.InformixDatabaseDialectService",
-        "bundle": {
-          "group": "io.github.danmorcov",
-          "artifact": "nifi-informix-dialect-nar",
-          "version": "0.1.0"
-        },
-        "properties": {
-          "Quote Identifiers": "false",
-          "Upsert String Length": "2048"
-        },
-        "propertyDescriptors": {
-          "Quote Identifiers": {
-            "name": "Quote Identifiers",
-            "displayName": "Quote Identifiers",
-            "identifiesControllerService": false,
-            "sensitive": false,
-            "dynamic": false
-          },
-          "Upsert String Length": {
-            "name": "Upsert String Length",
-            "displayName": "Upsert String Length",
-            "identifiesControllerService": false,
-            "sensitive": false,
-            "dynamic": false
-          }
-        },
-        "controllerServiceApis": [
-          {
-            "type": "org.apache.nifi.database.dialect.service.api.DatabaseDialectService",
-            "bundle": {
-              "group": "org.apache.nifi",
-              "artifact": "nifi-standard-services-api-nar",
-              "version": "2.12.0"
-            }
-          }
-        ],
-        "scheduledState": "DISABLED",
-        "bulletinLevel": "WARN",
-        "componentType": "CONTROLLER_SERVICE",
-        "groupIdentifier": "90c263d9-038d-3811-ba65-5d803a865429"
-      },
-      {
-        "identifier": "0f594351-6bd2-3cea-a7ce-7ec4b315581a",
-        "instanceIdentifier": "a56185d3-01a0-1000-6776-f155d68f1cab",
+        "identifier": "2e5875bb-61cc-3dad-a8c0-50143ddc8241",
+        "instanceIdentifier": "a8cd5de9-01a0-1000-d9ad-687137aa9326",
         "name": "JSON Writer",
         "comments": "",
         "type": "org.apache.nifi.json.JsonRecordSetWriter",
@@ -1096,7 +1877,7 @@
         "scheduledState": "DISABLED",
         "bulletinLevel": "WARN",
         "componentType": "CONTROLLER_SERVICE",
-        "groupIdentifier": "90c263d9-038d-3811-ba65-5d803a865429"
+        "groupIdentifier": "8b49b66d-b3b6-3d7f-8b1c-b71a65942541"
       }
     ],
     "defaultFlowFileExpiration": "0 sec",

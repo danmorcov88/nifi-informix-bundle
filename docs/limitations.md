@@ -109,3 +109,10 @@ Consequences to be aware of:
   quote string, so `PutDatabaseRecord`'s own *Quote Column Identifiers* option is a no-op there. When on, the dialect quotes table and column names it emits (including
   each segment of a dotted `schema.table` name) and leaves already-quoted names alone; it cannot
   quote names inside WHERE / ORDER BY text you supply, nor a `database@server:table` reference.
+- **No provenance transit URI with the IBM driver.** `DatabaseMetaData.getURL()` returns `null`
+  in the IBM JDBC driver (verified with 15.0.1.4). `QueryDatabaseTable*` and
+  `PutDatabaseRecord` pass that value to NiFi's provenance reporter, so `nifi-app.log` shows
+  `ERROR ... StandardProvenanceReporter Failed to generate Provenance Event ... Transit URI is not
+  set` for every batch. Data flow, state and the SQL are unaffected; only the RECEIVE/SEND
+  provenance events are missing. This happens with every dialect, including the generic one, and
+  cannot be fixed from a dialect service.

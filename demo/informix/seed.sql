@@ -13,7 +13,9 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
--- Demo database: NiFi reads new rows from orders (incrementally, by id) and upserts them into orders_copy.
+-- Demo database. Two NiFi paths read new rows from orders incrementally (by id):
+--   QueryDatabaseTableRecord -> PutDatabaseRecord UPSERT (MERGE) into orders_copy
+--   GenerateTableFetch (SKIP/FIRST pages of 2) -> ExecuteSQLRecord -> PutDatabaseRecord INSERT_IGNORE into orders_paged
 CREATE DATABASE demo WITH LOG;
 
 CREATE TABLE orders (
@@ -25,6 +27,14 @@ CREATE TABLE orders (
 );
 
 CREATE TABLE orders_copy (
+    id       INTEGER NOT NULL PRIMARY KEY,
+    customer VARCHAR(100) NOT NULL,
+    amount   DECIMAL(12,2) NOT NULL,
+    status   VARCHAR(20) NOT NULL,
+    updated  DATETIME YEAR TO FRACTION(5) NOT NULL
+);
+
+CREATE TABLE orders_paged (
     id       INTEGER NOT NULL PRIMARY KEY,
     customer VARCHAR(100) NOT NULL,
     amount   DECIMAL(12,2) NOT NULL,

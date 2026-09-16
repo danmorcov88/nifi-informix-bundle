@@ -44,9 +44,12 @@ cd demo
 ./run.sh
 ```
 
-Starts Informix and NiFi in Docker, imports a flow and copies rows from one Informix table to
-another through `QueryDatabaseTableRecord` → `PutDatabaseRecord` (UPSERT as `MERGE`). Details in
-[demo/README.md](demo/README.md).
+Starts Informix and NiFi in Docker, imports a flow and copies rows from one Informix table into
+two others: `QueryDatabaseTableRecord` → `PutDatabaseRecord` (UPSERT as `MERGE`), and
+`GenerateTableFetch` → `ExecuteSQLRecord` → `PutDatabaseRecord` (INSERT_IGNORE), which prints the
+`SELECT SKIP 2 FIRST 2 ...` statements the dialect generated. Details in [demo/README.md](demo/README.md).
+
+![The demo flow in NiFi](docs/images/demo-flow.png)
 
 ## Requirements
 
