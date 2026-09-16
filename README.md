@@ -60,12 +60,14 @@ two others: `QueryDatabaseTableRecord` → `PutDatabaseRecord` (UPSERT as `MERGE
 
 ## Installation
 
-1. Build the NAR:
+1. Get the NAR: download `nifi-informix-dialect-nar-<version>.nar` from the
+   [latest release](https://github.com/danmorcov88/nifi-informix-bundle/releases/latest), or build it:
    ```
    mvn clean install
    ```
-2. Copy `nifi-informix-dialect-nar/target/nifi-informix-dialect-nar-<version>.nar` into NiFi's
-   NAR auto-load directory — NiFi picks it up within seconds, no restart needed:
+   (the file is then in `nifi-informix-dialect-nar/target/`).
+2. Copy the NAR into NiFi's NAR auto-load directory — NiFi picks it up within seconds, no restart
+   needed:
    - standard distribution: `<NIFI_HOME>/extensions/`
    - `apache/nifi` Docker image: `/opt/nifi/nifi-current/nar_extensions/`
 
@@ -105,6 +107,14 @@ mvn verify -Pintegration-tests -Dinformix.image=icr.io/informix/informix-develop
 ```
 
 CI runs them nightly and on demand against Informix 14.10 and 15.0.1.
+
+## Releasing
+
+Set the version in the POMs (`mvn versions:set -DnewVersion=<version> -DgenerateBackupPoms=false`),
+add the `## [<version>]` section to [CHANGELOG.md](CHANGELOG.md), commit, then push the tag
+`v<version>`. The [release workflow](.github/workflows/release.yml) checks that the tag matches the
+POM version, runs the build and tests, and publishes a GitHub Release with the NAR attached and the
+CHANGELOG section as release notes.
 
 ## License
 

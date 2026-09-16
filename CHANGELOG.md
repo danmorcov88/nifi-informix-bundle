@@ -15,6 +15,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Screenshot of the flow in `docs/images/demo-flow.png`.
 - `docs/limitations.md`: the IBM driver returns no URL from `DatabaseMetaData.getURL()`, so NiFi
   logs a provenance error per batch; data flow is unaffected.
+- Release workflow: pushing a tag `v<version>` builds and tests the project and publishes a GitHub
+  Release with the NAR attached and the matching CHANGELOG section as notes.
+- README badges for CI, the NiFi compatibility matrix, the latest release and the license.
 
 ## [0.1.0] - 2026-09-16
 
